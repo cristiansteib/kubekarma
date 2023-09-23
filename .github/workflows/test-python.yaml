@@ -1,0 +1,17 @@
+name: Python package
+
+on: [push]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: Install tox and any other packages
+      run: pip install tox
+    - name: Run tests
+      run: tox -e worker

@@ -1,0 +1,34 @@
+apiVersion: kubekarma.io/v1
+kind: NetworkPolicyTestSuite
+metadata:
+  name: an-example-of-all-asserts
+spec:
+  name: A test suite test
+  schedule: "* * * * 1"
+  testCases:
+    - name: web-server-access
+      testExactDestination:
+        destinationIP: 192.168.1.100
+        port: 80
+        expectSuccess: true
+    - name: database-access
+      testExactDestination:
+        destinationIP: 10.0.0.50
+        port: 3306
+        expectSuccess: false
+    - name: internet-access
+      testIpBlock:
+        ipBlock: 192.168.0.0/24
+        destinationPort: 443
+        expectSuccess: true
+#    - name: Test if host can be resolved by default system DNS
+#      testDNSResolution:
+#        host: google.com
+#        expectSuccess: true
+    - name: Test if host can be resolved by with specific DNS server
+      testDNSResolution:
+        nameservers:
+          - "1.1.1.1"
+        host: google.com
+        expectSuccess: true
+

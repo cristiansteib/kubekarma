@@ -1,0 +1,169 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: networkpolicytestsuites.kubekarma.io
+spec:
+  scope: Namespaced
+  preserveUnknownFields: false
+  group: kubekarma.io
+  names:
+    kind: NetworkPolicyTestSuite
+    plural: networkpolicytestsuites
+    singular: networkpolicytestsuite
+    shortNames:
+      - nptest
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the test suite
+                schedule:
+                  type: string
+                  description: The frequency at which the test suite should be run
+                  default: "* * * * *"
+                  pattern: "^[*] ([*]|[0-5]?[0-9]) ([*]|[0-5]?[0-9]) ([*]|[0-9]|[0-2]?[0-9]) ([*]|[0-9]|[0-6]?[0-9])$"
+                testCases:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      testExactDestination:
+                        type: object
+                        properties:
+                          destinationIP:
+                            type: string
+                          port:
+                            type: integer
+                          expectSuccess:
+                            type: boolean
+                        required:
+                          - destinationIP
+                          - port
+                          - expectSuccess
+                      testIpBlock:
+                        type: object
+                        properties:
+                          ipBlock:
+                            type: string
+                          destinationPort:
+                            type: integer
+                          expectSuccess:
+                            type: boolean
+                        required:
+                          - ipBlock
+                          - destinationPort
+                          - expectSuccess
+                      destinationHost:
+                          type: object
+                          properties:
+                            host:
+                              type: string
+                            port:
+                              type: integer
+                            expectSuccess:
+                              type: boolean
+                          required:
+                              - host
+                              - port
+                              - expectSuccess
+                      testDNSResolution:
+                        type: object
+                        properties:
+                          nameservers:
+                            type: array
+                            items:
+                              type: string
+                          host:
+                            type: string
+                          expectSuccess:
+                            type: boolean
+                        required:
+                          - host
+                          - expectSuccess
+                    oneOf:
+                      - properties:
+                        required:
+                          - testDNSResolution
+                      - properties:
+                        required:
+                          - testExactDestination
+                      - properties:
+                        required:
+                          - testIpBlock
+                      - properties:
+                        required:
+                          - destinationHost
+                    required:
+                      - name
+
+              required:
+                - name
+                - testCases
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  description: The current status of the test suite
+                  default: Pending
+                  enum:
+                    - Pending
+                    - Running
+                    - Completed
+                    - Failed
+                    - Unknown
+                testCases:
+                  type: array
+                  default: []
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      status:
+                        type: string
+                        description: The current status of the test case
+                        enum:
+                          - Pending
+                          - Running
+                          - Completed
+                          - Failed
+                          - Unknown
+                      message:
+                        type: string
+                        description: The message associated with the test case
+                    required:
+                      - name
+                      - status
+                      - message
+                message:
+                  type: string
+                  description: The message associated with the test suite
+                  default: ""
+              required:
+                - phase
+                - testCases
+                - message
+      additionalPrinterColumns:
+      # https://github.com/kubernetes-sigs/controller-tools/issues/447
+      - name: Test Cases
+        type: string
+        description: The number of test cases in the suite
+        jsonPath: .spec.testCases[*].name
+        priority: 0
+#        format: int32
+      - name: Age
+        type: date
+        description: The age of the suite
+        jsonPath: .metadata.creationTimestamp

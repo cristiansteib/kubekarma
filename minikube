@@ -1,0 +1,15 @@
+minikube config set driver docker
+minikube start --delete-on-failure \
+        --cpus=4 --wait=node_ready \
+        --docker-opt bip=172.80.0.1/16 \
+        --insecure-registry "172.80.0.1/16" \
+        --kubernetes-version=v1.24.7 \
+        --cache-images --cache-images=true
+
+info "Enabling minikube addons..."
+minikube addons enable ingress
+minikube addons enable metrics-server
+minikube addons enable registry
+
+
+kubectl apply -f https://github.com/nolar/kopf/raw/main/peering.yaml

@@ -1,0 +1,4 @@
+kopf[full-auth]
+kubernetes==28.1.0
+fastapi
+uvicorn

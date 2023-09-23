@@ -1,0 +1,1 @@
+This directory must only contain protobuf files.

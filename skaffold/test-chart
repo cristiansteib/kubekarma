@@ -1,0 +1,4 @@
+#!/bin/bash -ex
+
+helm template chart > /tmp/kubekarma.yaml
+kubeval /tmp/kubekarma.yaml

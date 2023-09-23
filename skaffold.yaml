@@ -1,0 +1,41 @@
+apiVersion: skaffold/v4beta6
+kind: Config
+metadata:
+  name: operator-controller
+build:
+  artifacts:
+    - image: localhost:5000/network-policy-test-operator
+      docker:
+        dockerfile: operator.Dockerfile
+
+manifests:
+  helm:
+    releases:
+      - name: kubekarmar
+        chartPath: chart
+deploy:
+  kubectl:
+    hooks:
+      before:
+        - host:
+            command: ["kubectl", "apply", "-f", "tests/namespace.yaml"]
+#         Clean the environment before performing the deployment
+        - host:
+            command: [ "kubectl", "delete", "-f", "chart/crds/NetworkPolicyTestSuite.yaml", "--ignore-not-found=true" ]
+        - host:
+            command: [ "kubectl", "delete", "-f", "tests/test_with_all_asserts.yaml", "--ignore-not-found=true", "--namespace=another-namespace" ]
+        - host:
+            command: ["kubectl", "apply", "-f", "chart/crds/NetworkPolicyTestSuite.yaml"]
+---
+apiVersion: skaffold/v4beta6
+kind: Config
+metadata:
+  name: worker
+build:
+  artifacts:
+    - image: localhost:5000/network-policy-test-worker
+      docker:
+        dockerfile: worker.Dockerfile
+      hooks:
+        after:
+          - command: ["skaffold/set-image"]

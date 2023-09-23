@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="KubernetesSettings">
+    <option name="contextName" value="custom" />
+    <option name="getSpecFromCluster" value="true" />
+    <specSources>
+      <SpecSource>
+        <option name="pathOrUrl" value="https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/pkg/skaffold/schema/v4beta6/config.go" />
+      </SpecSource>
+    </specSources>
+  </component>
+</project>

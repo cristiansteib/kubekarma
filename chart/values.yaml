@@ -1,0 +1,13 @@
+crd:
+  kind: NetworkPolicyTestSuite
+  plural: networkpolicytestsuites
+  singular: networkpolicytestsuite
+  group: kubekarma.io
+  scope: Namespaced
+  shortNames:
+    - npts
+
+image:
+  repository: localhost:5000/network-policy-test-operator
+  pullPolicy: IfNotPresent
+  tag: "latest"
