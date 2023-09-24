@@ -112,6 +112,8 @@ spec:
                 - testCases
             status:
               type: object
+              # Required to allow patch status with KOPF :/
+              x-kubernetes-preserve-unknown-fields: true
               properties:
                 phase:
                   type: string

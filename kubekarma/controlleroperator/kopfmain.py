@@ -39,7 +39,7 @@ class KubernetesApi:
             group=api_version.group,
             version=api_version.version,
             namespace=namespace,
-            plural=API_PLURAL,
+            plural=crd_network_policy_tes_suite_handler.API_PLURAL,
             name=body['metadata']['name']
         )
         status = a_object.get('status', {})
@@ -49,7 +49,7 @@ class KubernetesApi:
             group=api_version.group,
             version=api_version.version,
             namespace=namespace,
-            plural=API_PLURAL,
+            plural=crd_network_policy_tes_suite_handler.API_PLURAL,
             name=body['metadata']['name'],
             body=status
         )
@@ -59,7 +59,6 @@ class KubernetesApi:
 
 API_GROUP = 'kubekarma.io'
 API_VERSION = 'v1'
-API_PLURAL = 'networkpolicytestsuites'
 
 
 @kopf.on.login()
@@ -80,7 +79,8 @@ def configure(settings: kopf.OperatorSettings, **_):
     settings.execution.max_workers = 8
     settings.watching.connect_timeout = 1 * 60
     settings.watching.server_timeout = 5 * 60
-
+    lll = logging.getLogger('kopf.objects')
+    lll.handlers = []
 
 @kopf.on.startup()
 def start_results_receiver(**kwargs):
@@ -109,5 +109,5 @@ def parse_api_version(api_version: str) -> ApiVersion:
 
 
 (kopf.on.create(
-    API_GROUP, API_VERSION, API_PLURAL
+    API_GROUP, API_VERSION, crd_network_policy_tes_suite_handler.API_PLURAL
 )(crd_network_policy_tes_suite_handler.handle))

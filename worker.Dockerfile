@@ -12,7 +12,7 @@ ENV PYTHONUNBUFFERED=1
 COPY requiriments.worker.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip wheel --no-deps --wheel-dir /usr/src/app/wheels \
-    -r requiriments.worker.txt
+    -r requirements.worker.txt
 
 FROM python:3.10-slim AS app
 LABEL org.opencontainers.image.authors="Cristian Steib"

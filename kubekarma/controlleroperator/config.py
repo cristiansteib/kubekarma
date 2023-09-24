@@ -6,6 +6,8 @@ import os
 class Config:
     controller_server_host: str
     worker_image: str
+    API_GROUP = 'kubekarma.io'
+    API_VERSION = 'v1'
 
     @classmethod
     def from_env_vars(cls) -> 'Config':
