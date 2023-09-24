@@ -2,4 +2,4 @@
 SKAFFOLD_IMAGE="${SKAFFOLD_IMAGE:?SKAFFOLD_IMAGE is not set}"
 
 
-yq -e -i '.spec.jobTemplate.spec.template.spec.containers[0].image = strenv(SKAFFOLD_IMAGE)' kubekarma/controlleroperator/handlers/npts_job_template.yaml
+yq -e -i '.workerImage.tag = strenv(SKAFFOLD_IMAGE_TAG)' chart/values.yaml

@@ -1,5 +1,4 @@
 import dataclasses
-from doctest import TestResults
 from typing import List
 
 import logging
@@ -122,5 +121,4 @@ class NetworkPolicyTestSuite:
                 logger.exception(
                     f"Test case {test['name']} failed with unexpected error {e}"
                 )
-
         return results

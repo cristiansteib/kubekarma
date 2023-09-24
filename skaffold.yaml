@@ -23,7 +23,7 @@ deploy:
         - host:
             command: [ "kubectl", "delete", "-f", "chart/crds/NetworkPolicyTestSuite.yaml", "--ignore-not-found=true" ]
         - host:
-            command: [ "kubectl", "delete", "-f", "tests/test_with_all_asserts.yaml", "--ignore-not-found=true", "--namespace=another-namespace" ]
+            command: [ "kubectl", "delete", "-f", "examples/NetworkPolicyTestSuite/test_with_all_asserts.yaml", "--ignore-not-found=true", "--namespace=another-namespace" ]
         - host:
             command: ["kubectl", "apply", "-f", "chart/crds/NetworkPolicyTestSuite.yaml"]
 ---

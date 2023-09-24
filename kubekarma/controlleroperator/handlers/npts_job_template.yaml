@@ -12,7 +12,7 @@ spec:
         spec:
           containers:
             - name: worker
-              image: "localhost:5000/network-policy-test-worker:253b0b9-dirty"
+              image: "localhost:5000/network-policy-test-worker:4c5b4ae-dirty"
               imagePullPolicy: IfNotPresent
               env:
                 - name: NPTS_CONTROLLER_OPERATOR_URL

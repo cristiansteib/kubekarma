@@ -21,6 +21,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+
 def perform_task_execution(task: ExecutionTaskConfig) -> List[TestResults]:
     if task.controller_version != package_version:
         raise Exception(
@@ -28,7 +29,6 @@ def perform_task_execution(task: ExecutionTaskConfig) -> List[TestResults]:
         )
     npts = NetworkPolicyTestSuite(config_spec=task.np_test_suite_spec)
     return npts.run()
-
 
 def read_yaml(stream: str) -> dict:
     return yaml.safe_load(stream)

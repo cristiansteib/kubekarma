@@ -11,8 +11,11 @@ class NetworkPolicyTestSuiteTest(unittest.TestCase):
 
     @staticmethod
     def load_yaml() -> dict:
+        asset_path = Path(
+            "examples/NetworkPolicyTestSuite/test_with_all_asserts.yaml"
+        )
         parent_path = __file__.split("/")[:-3]
-        f_path = Path("/".join(parent_path)) / "examples/NetworkPoliciyTestSuite/test_with_all_asserts.yaml"
+        f_path = Path("/".join(parent_path)) / asset_path
         with open(f_path) as f:
             return yaml.safe_load(f)
 
@@ -24,4 +27,3 @@ class NetworkPolicyTestSuiteTest(unittest.TestCase):
             test_suite = NetworkPolicyTestSuite(test_config["spec"])
             test_suite.run()
         self.assertEqual(_run_test_mock.call_count, 4)
-        #dfsg

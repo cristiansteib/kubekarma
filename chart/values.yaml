@@ -6,8 +6,11 @@ crd:
   scope: Namespaced
   shortNames:
     - npts
-
 image:
   repository: localhost:5000/network-policy-test-operator
   pullPolicy: IfNotPresent
   tag: "latest"
+workerImage:
+  repository: localhost:5000/network-policy-test-worker
+  pullPolicy: IfNotPresent
+  tag: "4c5b4ae-dirty"

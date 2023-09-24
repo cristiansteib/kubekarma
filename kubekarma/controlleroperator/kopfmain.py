@@ -7,8 +7,9 @@ import logging
 
 import kubernetes
 
-
-from kubekarma.controlleroperator.handlers import networkpolicytestsuite as npts_handler
+from kubekarma.controlleroperator.handlers.networkpolicytestsuite import (
+    NetworkPolicyTestSuiteHandler
+)
 from kubekarma.controlleroperator.httpserver import start_server
 from kubernetes import client
 
@@ -16,25 +17,16 @@ http_server_process = Process(target=start_server, args=("0.0.0.0",))
 
 _logger = logging.getLogger(__name__)
 
+api_client = client.ApiClient()
+
+crd_network_policy_tes_suite_handler = NetworkPolicyTestSuiteHandler()
+
 
 class KubernetesApi:
     """An abstract layer to talk with the Kubernetes API."""
 
     def __init__(self, apps_api: kubernetes.client.AppsV1Api):
         self.apps_api = apps_api
-
-    def create_cronjob(
-        self,
-        namespace: str,
-        job_template: dict
-    ) -> kubernetes.client.V1CronJob:
-        """Create a cronjob in the cluster."""
-        return kubernetes.client.BatchV1Api(
-            api_client=self.apps_api.api_client
-        ).create_namespaced_cron_job(
-            namespace=namespace,
-            body=job_template
-        )
 
     def mutate_crd_satus(self, body, new_status):
         # TODO: improve this method to be more generic
@@ -63,7 +55,7 @@ class KubernetesApi:
         )
 
 
-kubernetes_api: KubernetesApi
+# kubernetes_api = KubernetesApi(client.ApiClient())
 
 API_GROUP = 'kubekarma.io'
 API_VERSION = 'v1'
@@ -72,9 +64,10 @@ API_PLURAL = 'networkpolicytestsuites'
 
 @kopf.on.login()
 def login(**kwargs):
-    global kubernetes_api
+    print(kwargs)
     conn = kopf.login_via_client(**kwargs)
-    kubernetes_api = KubernetesApi(client.AppsV1Api())
+    global api_client
+    api_client = client.ApiClient()
     return conn
 
 
@@ -115,28 +108,6 @@ def parse_api_version(api_version: str) -> ApiVersion:
     return ApiVersion(group=group, version=version)
 
 
-@kopf.on.create(
-    API_GROUP,
-    API_VERSION,
-    API_PLURAL,
-)
-def network_policy_created(spec, body, **kwargs):
-    kopf.info(
-        body,
-        reason='Creation received by controller',
-        message=f'Handling {body["kind"]}  <{body["spec"]["name"]}>'
-    )
-    kubernetes_api.mutate_crd_satus(body, 'Pending')
-    cron_job_body = npts_handler.handle_npts_creation(body)
-    # Adopt the object to propagate the deletion.
-    kopf.adopt(cron_job_body)
-    cron_job = kubernetes_api.create_cronjob(
-        namespace=body['metadata']['namespace'],
-        job_template=cron_job_body
-    )
-    kubernetes_api.mutate_crd_satus(body, 'Running')
-    kopf.info(
-        body,
-        reason='ready',
-        message=f'detected creation'
-    )
+(kopf.on.create(
+    API_GROUP, API_VERSION, API_PLURAL
+)(crd_network_policy_tes_suite_handler.handle))
