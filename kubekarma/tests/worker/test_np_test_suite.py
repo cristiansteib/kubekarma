@@ -14,7 +14,7 @@ class NetworkPolicyTestSuiteTest(unittest.TestCase):
         asset_path = Path(
             "examples/NetworkPolicyTestSuite/test_with_all_asserts.yaml"
         )
-        parent_path = __file__.split("/")[:-3]
+        parent_path = __file__.split("/")[:-4]
         f_path = Path("/".join(parent_path)) / asset_path
         with open(f_path) as f:
             return yaml.safe_load(f)
