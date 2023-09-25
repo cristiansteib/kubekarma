@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Seems to speed things up
 ENV PYTHONUNBUFFERED=1
 
-COPY requiriments.worker.txt ./
+COPY requirements.worker.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip wheel --no-deps --wheel-dir /usr/src/app/wheels \
     -r requirements.worker.txt

@@ -1,25 +1,34 @@
 import dataclasses
 from datetime import datetime
-from multiprocessing import Process
 
 import kopf
 import logging
 
 import kubernetes
 
-from kubekarma.controlleroperator.handlers.networkpolicytestsuite import (
-    NetworkPolicyTestSuiteHandler
+from kubekarma.controlleroperator import get_results_publisher
+from kubekarma.controlleroperator.handlers.networktestsuite import (
+    NetworkTestSuiteHandler
 )
-from kubekarma.controlleroperator.httpserver import start_server
+from kubekarma.controlleroperator.httpserver import get_threaded_server
 from kubernetes import client
 
-http_server_process = Process(target=start_server, args=("0.0.0.0",))
 
 _logger = logging.getLogger(__name__)
 
 api_client = client.ApiClient()
 
-crd_network_policy_tes_suite_handler = NetworkPolicyTestSuiteHandler()
+publisher = get_results_publisher()
+
+
+crd_network_policy_tes_suite_handler = NetworkTestSuiteHandler(
+    publisher=publisher
+)
+
+
+# I need to share the memory space between the kopf process and the http server
+# because the http server needs the publisher instance to notify the results.
+http_server_thread = get_threaded_server(http_host="0.0.0.0")
 
 
 class KubernetesApi:
@@ -55,8 +64,6 @@ class KubernetesApi:
         )
 
 
-# kubernetes_api = KubernetesApi(client.ApiClient())
-
 API_GROUP = 'kubekarma.io'
 API_VERSION = 'v1'
 
@@ -79,17 +86,18 @@ def configure(settings: kopf.OperatorSettings, **_):
     settings.execution.max_workers = 8
     settings.watching.connect_timeout = 1 * 60
     settings.watching.server_timeout = 5 * 60
-    lll = logging.getLogger('kopf.objects')
-    lll.handlers = []
+
 
 @kopf.on.startup()
-def start_results_receiver(**kwargs):
-    http_server_process.start()
+def start_http_server(**kwargs):
+    global http_server_thread
+    http_server_thread.start()
 
 
 @kopf.on.cleanup()
 def stop_results_receiver(**kwargs):
-    http_server_process.terminate()
+    global http_server_thread
+    http_server_thread.stop()
 
 
 @kopf.on.probe(id='now')

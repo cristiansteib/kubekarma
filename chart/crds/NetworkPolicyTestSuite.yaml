@@ -169,3 +169,7 @@ spec:
         type: date
         description: The age of the suite
         jsonPath: .metadata.creationTimestamp
+      - name: Phase
+        type: string
+        description: The current status of the test suite
+        jsonPath: .status.phase

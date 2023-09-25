@@ -2,4 +2,4 @@
 SKAFFOLD_IMAGE="${SKAFFOLD_IMAGE:?SKAFFOLD_IMAGE is not set}"
 
 
-yq -e -i '.workerImage.tag = strenv(SKAFFOLD_IMAGE_TAG)' chart/values.yaml
+yq -e -i '.workerImage.tag = strenv(SKAFFOLD_IMAGE_TAG)' dev/values.yaml

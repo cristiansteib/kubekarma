@@ -4,7 +4,7 @@ metadata:
   name: an-example-of-all-asserts
 spec:
   name: A test suite test
-  schedule: "* * * * 1"
+  schedule: "* * * * *"
   testCases:
     - name: web-server-access
       testExactDestination:

@@ -1,7 +1,6 @@
 import dataclasses
-from typing import Tuple
 
-from controlleroperator.config import config
+from kubekarma.controlleroperator.config import config
 
 
 @dataclasses.dataclass

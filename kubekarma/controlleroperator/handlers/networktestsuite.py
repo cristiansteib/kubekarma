@@ -12,7 +12,11 @@ from kubernetes.client import (
 )
 import yaml
 
-from controlleroperator import helpers
+from kubekarma.controlleroperator.interfaces.resultspublisher import (
+    IResultsPublisher,
+    IResultsSubscriber
+)
+from kubekarma.controlleroperator import helpers
 from kubekarma.controlleroperator import TOOL_NAME
 from kubekarma.controlleroperator.config import config
 
@@ -21,7 +25,26 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class NetworkPolicyTestSuiteHandler:
+class ResultsSubscriber(IResultsSubscriber):
+
+    def __init__(self, job_name, job_task_id):
+        self.job_name = job_name
+        self.job_task_id = job_task_id
+
+    def receive_results(self, results):
+        print("got new results", results)
+
+    def __hash__(self):
+        return hash(id(self))
+
+
+class NetworkTestSuiteHandler:
+    """This class is the responsible to handle the lifecycle of the CRD.
+
+    On creation:
+        - Create a cronjob to execute the tests defined by the user.
+        - Create a subscriber to listen for the results of the execution task.
+    """
     # We need a version for this handler in order to know if the operator
     # must change some of the CRD fields or execute some actions.
     # Note that this value is used in an annotation, so it must be compatible
@@ -30,8 +53,12 @@ class NetworkPolicyTestSuiteHandler:
 
     API_PLURAL = 'networkpolicytestsuites'
 
-    def __init__(self):
+    def __init__(self, publisher: IResultsPublisher):
         self.__api_client: Optional[client.ApiClient] = None
+        self.publisher = publisher
+
+        logger.info("publisher: %s", id(publisher))
+        print("publisher id:", id(publisher))
 
     @property
     def _api_client(self) -> ApiClient:
@@ -53,6 +80,23 @@ class NetworkPolicyTestSuiteHandler:
             body=patch
         )
 
+    @staticmethod
+    def _assert_all_test_suite_names_are_unique(spec: dict):
+        """Validate that all test suite names are unique.
+
+        This is required because the test suite name is used to identify each
+        test for the results.
+        """
+        test_suite = spec['testCases']
+        test_suite_names = [ts['name'] for ts in test_suite]
+        duplicates = set(
+            [x for x in test_suite_names if test_suite_names.count(x) > 1]
+        )
+        if duplicates:
+            raise kopf.PermanentError(
+                f"Test suite names must be unique. Duplicates: {duplicates}"
+            )
+
     def handle(self, spec, body, **kwargs):
         """A handler to receive a NetworkPolicyTestSuite creation event."""
         # NOTE: kopf._cogs.clients.events.post_event has a hardcoded
@@ -62,24 +106,36 @@ class NetworkPolicyTestSuiteHandler:
             reason='Creation received by controller',
             message=f'Handling {body["kind"]}  <{spec["name"]}>'
         )
+        self._assert_all_test_suite_names_are_unique(spec)
 
         namespace = body['metadata']['namespace']
         metadata_name = body['metadata']['name']
         schedule = spec['schedule']
-
-        cron_job_name = metadata_name + "-npts-" + uuid.uuid4().hex[:4]
-
+        worker_task_id = uuid.uuid4().hex
+        cron_job_name = metadata_name + "-npts-" + worker_task_id[:4]
         cron_job = self.__generate_cronjob(
             npts_metadata_name=cron_job_name,
             namespace=body['metadata']['namespace'],
             schedule=schedule,
             task_execution_config=body['spec'],
+            worker_task_id=worker_task_id
         ).to_dict()
-
 
         # Adopt the cronjob to the parent object to be able to delete it
         # in cascade.
         kopf.adopt(cron_job, owner=body)
+
+        # Create the subscriber to listen for the results of the execution
+        # task.
+        subscriber = ResultsSubscriber(
+            job_name=cron_job_name,
+            job_task_id=worker_task_id
+        )
+        print("subscriber id:", id(self.publisher))
+        self.publisher.add_results_listener(
+            execution_id=worker_task_id,
+            subscriber=subscriber
+        )
 
         # Effectively create the cronjob in the cluster
         BatchV1Api(
@@ -143,13 +199,14 @@ class NetworkPolicyTestSuiteHandler:
         npts_metadata_name,
         namespace,
         schedule,
-        task_execution_config: dict
+        task_execution_config: dict,
+        worker_task_id: str
     ) -> V1CronJob:
         """Generate the job template to be used by the cronjob."""
         envs = [
             V1EnvVar(
                 name='WORKER_TASK_ID',
-                value=uuid.uuid4().hex
+                value=worker_task_id
             ),
             V1EnvVar(
                 name='WORKER_CONTROLLER_VERSION',
@@ -170,7 +227,7 @@ class NetworkPolicyTestSuiteHandler:
             namespace=namespace,
         )
         cron_job.metadata.annotations = (
-            NetworkPolicyTestSuiteHandler._get_version_handler_notation()
+            NetworkTestSuiteHandler._get_version_handler_notation()
         )
         cron_job.spec = {
             "schedule": schedule,
@@ -178,6 +235,7 @@ class NetworkPolicyTestSuiteHandler:
                 "spec": {
                     "template": {
                         "spec": {
+                            "successfulJobsHistoryLimit": 5,
                             "containers": [
                                 {
                                     "name": TOOL_NAME,

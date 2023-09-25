@@ -13,6 +13,8 @@ manifests:
     releases:
       - name: kubekarmar
         chartPath: chart
+        valuesFiles:
+          - dev/values.yaml
 deploy:
   kubectl:
     hooks:

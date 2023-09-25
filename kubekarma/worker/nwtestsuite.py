@@ -102,22 +102,24 @@ class NetworkPolicyTestSuite:
                     exception=None
                 ))
             except AssertionFailure as e:
-                results.append(TestResults(
+                test_result = TestResults(
                     name=test["name"],
                     passed=False,
                     message=e.message,
-                    exception=e
-                ))
-
+                    exception=None
+                )
+                test_result.set_exception(e)
+                results.append(test_result)
                 logger.error(f"Test case {test['name']} failed")
             except Exception as e:
-                results.append(TestResults(
+                test_result = TestResults(
                     name=test["name"],
                     passed=False,
-                    message=f"Test failed with unexpected error {e}",
-                    exception=e
-                ))
-                # TODO: this error is critical, we should be reported.
+                    message=str(e),
+                    exception=None
+                )
+                test_result.set_exception(e)
+                results.append(test_result)
                 logger.exception(
                     f"Test case {test['name']} failed with unexpected error {e}"
                 )
