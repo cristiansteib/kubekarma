@@ -1,4 +1,8 @@
-#!/bin/bash -ex
+#!/bin/bash -exworkerImage:
+  repository: localhost:5000/network-policy-test-worker
+  pullPolicy: IfNotPresent
+  tag: "ff4997e-dirty"
+
 SKAFFOLD_IMAGE="${SKAFFOLD_IMAGE:?SKAFFOLD_IMAGE is not set}"
 
 

@@ -1,11 +1,12 @@
 import dataclasses
+import time
 from typing import List
 
 import logging
 
 from kubekarma.worker.assertions.dnsresolution import DNSResolutionAssertion
 from kubekarma.worker.assertions.exception import AssertionFailure
-from kubekarma.dto.executiontask import TestResults
+from kubekarma.dto.executiontask import TestCaseStatus, TestResults
 
 logger = logging.getLogger(__name__)
 
@@ -55,11 +56,14 @@ class NetworkPolicyTestSuite:
         This method also perform validations on the test case spec.
         """
         _test_case = test_case_spec.copy()
+        # TODO: improve this method
         keys = set(_test_case.keys())
         if "name" not in keys:
             raise InvalidDefinition("testCases[] items must have a .name")
         test_name = _test_case.pop("name")
-        if len(keys) != 2:
+        test_description = _test_case.pop("allowedToFail", None)
+        keys = set(_test_case.keys())
+        if len(keys) != 1:
             raise InvalidDefinition(
                 f"testCases[{test_name}] must have exactly one assertion type."
             )
@@ -77,13 +81,14 @@ class NetworkPolicyTestSuite:
 
     def _run_test(self, test_case_spec: dict):
         test_case = self._parse_test_case(test_case_spec)
-        clazz = self.DEFINED_ASSERTIONS.get(test_case.assertion_type)
+        clazz = self.DEFINED_ASSERTIONS.get(
+            test_case.assertion_type
+        )
         if clazz is None:
-            logger.warning(
-                "Assertion type %s is not currently supported.",
-                test_case.assertion_type
+            raise NotImplementedError(
+                f"Assertion type {test_case.assertion_type} "
+                "is not currently supported."
             )
-            return
         assertion = clazz.from_dict(test_case.assertion_config)
         assertion.test()
 
@@ -93,34 +98,28 @@ class NetworkPolicyTestSuite:
         results = []
 
         for test in self.config_spec["testCases"]:
+            start_time = time.perf_counter()
+            test_result = TestResults(
+                name=test["name"],
+                status=TestCaseStatus.Failed,
+                executionTime="-"
+            )
             try:
                 self._run_test(test)
-                results.append(TestResults(
-                    name=test["name"],
-                    passed=True,
-                    message="Test passed",
-                    exception=None
-                ))
+                test_result.status = TestCaseStatus.Success
             except AssertionFailure as e:
-                test_result = TestResults(
-                    name=test["name"],
-                    passed=False,
-                    message=e.message,
-                    exception=None
-                )
                 test_result.set_exception(e)
-                results.append(test_result)
                 logger.error(f"Test case {test['name']} failed")
+            except NotImplementedError:
+                test_result.status = TestCaseStatus.NotImplemented
             except Exception as e:
-                test_result = TestResults(
-                    name=test["name"],
-                    passed=False,
-                    message=str(e),
-                    exception=None
-                )
                 test_result.set_exception(e)
-                results.append(test_result)
                 logger.exception(
                     f"Test case {test['name']} failed with unexpected error {e}"
                 )
+            finally:
+                end_time = time.perf_counter()
+                test_result.executionTime = f"{end_time - start_time:0.4f}s"
+                results.append(test_result)
+
         return results

@@ -25,5 +25,6 @@ class NetworkPolicyTestSuiteTest(unittest.TestCase):
             "kubekarma.worker.nwtestsuite.NetworkPolicyTestSuite._run_test"
         ) as _run_test_mock:
             test_suite = NetworkPolicyTestSuite(test_config["spec"])
-            test_suite.run()
+            results = test_suite.run()
+            test_suite._parse_test_case(test_config["spec"]["testCases"][3])
         self.assertEqual(_run_test_mock.call_count, 4)

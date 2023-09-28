@@ -119,3 +119,4 @@ def parse_api_version(api_version: str) -> ApiVersion:
 (kopf.on.create(
     API_GROUP, API_VERSION, crd_network_policy_tes_suite_handler.API_PLURAL
 )(crd_network_policy_tes_suite_handler.handle))
+

@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 
 from pydantic import BaseModel
 
+from kubekarma.dto.executiontask import TestResults
 from kubekarma.controlleroperator.interfaces.resultspublisher import IResultsPublisher
 from kubekarma.controlleroperator import get_results_publisher
 import logging
@@ -22,15 +23,12 @@ logger = logging.getLogger(__name__)
 __publisher: Optional[IResultsPublisher] = None
 
 
-
-class Item(BaseModel):
+# this model should be symetric with dto.executiontask.TestResults
+class TestResultsModel(BaseModel):
     name: str
-    passed: bool
-    message: str
-    exception: Optional[dict]
-
-
-
+    status: str  # TestCaseStatus
+    executionTime: str
+    error: Optional[dict] = None
 
 
 @app.exception_handler(RequestValidationError)
@@ -38,7 +36,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     exc_str = f'{exc}'.replace('\n', ' ').replace('   ', ' ')
     logger.error(f"{request}: {exc_str}")
     content = {'status_code': 10422, 'message': exc_str, 'data': None}
-    return JSONResponse(content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+    return JSONResponse(
+        content=content,
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
+    )
 
 
 @app.get("/healthz")
@@ -47,9 +48,13 @@ def healthz():
 
 
 @app.post("/api/v1/execution-tasks/{execution_id}")
-def post_results(execution_id: str, items: List[Item]):
+def post_results(execution_id: str, items: List[TestResultsModel]):
     print("Received results for execution task:", execution_id)
-    get_results_publisher().notify_new_results(execution_id, results=items)
+    # Convert the items to TestResults
+    get_results_publisher().notify_new_results(
+        execution_id,
+        results=[TestResults(**item.model_dump()) for item in items]
+    )
     return {"item_id": execution_id}
 
 

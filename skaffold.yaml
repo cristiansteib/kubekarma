@@ -22,16 +22,16 @@ deploy:
         - host:
             command: ["kubectl", "apply", "-f", "dev/namespace.yaml"]
 #         Clean the environment before performing the deployment
-        - host:
-            command: [ "kubectl", "delete", "-f", "chart/crds/NetworkPolicyTestSuite.yaml", "--ignore-not-found=true" ]
+        #- host:
+        #    command: [ "kubectl", "delete", "-f", "chart/crds/NetworkPolicyTestSuite.yaml", "--ignore-not-found=true" ]
         - host:
             command: [ "kubectl", "delete", "-f", "examples/NetworkPolicyTestSuite/test_with_all_asserts.yaml", "--ignore-not-found=true", "--namespace=another-namespace" ]
         - host:
             command: ["kubectl", "apply", "-f", "chart/crds/NetworkPolicyTestSuite.yaml"]
         # create a few Kopf-specific custom resources in the cluster
         # kubectl apply -f https://github.com/nolar/kopf/raw/main/peering.yaml
-        - host:
-            command: ["kubectl", "apply", "-f", "https://github.com/nolar/kopf/raw/main/peering.yaml"]
+#        - host:
+#            command: ["kubectl", "apply", "-f", "https://github.com/nolar/kopf/raw/main/peering.yaml"]
 
 ---
 apiVersion: skaffold/v4beta6

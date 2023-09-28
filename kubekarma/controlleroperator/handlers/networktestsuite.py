@@ -1,5 +1,7 @@
+import dataclasses
+import json
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 import kopf
 from kubernetes import client
@@ -12,6 +14,8 @@ from kubernetes.client import (
 )
 import yaml
 
+from kubekarma.crddefinitions.networkpolicytestsuite import NetworkPolicyTestSuiteCRD
+from kubekarma.dto.executiontask import TestResults
 from kubekarma.controlleroperator.interfaces.resultspublisher import (
     IResultsPublisher,
     IResultsSubscriber
@@ -25,14 +29,115 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+@dataclasses.dataclass
+class CtxCRDInstance:
+    """A class to keep a track of the CRD created."""
+    namespace: str
+    metadata_name: str
+    cron_job_name: str
+    worker_task_id: str
+
+
+class CRDInstanceManager:
+
+    def __init__(self, api_client: ApiClient, ctx: CtxCRDInstance):
+        self.api_client = api_client
+        self.ctx = ctx
+
+    def patch_crd(self, patch: dict):
+        """Patch the CRD with the given patch."""
+        client.CustomObjectsApi(
+            api_client=self.api_client
+        ).patch_namespaced_custom_object(
+            group="kubekarma.io",
+            version="v1",
+            namespace=self.ctx.namespace,
+            plural="networkpolicytestsuites",
+            name=self.ctx.metadata_name,
+            body=patch
+        )
+
+    def patch_with_handler_code_version_notation(self, handler_code_version):
+        """Patch the CRD with the given patch."""
+        annotations = {}
+        annotations.update(
+            helpers.generate_custom_annotation(
+                "npts-handler-version",
+                handler_code_version
+            ).to_kv()
+        )
+
+        self.patch_crd(
+            patch={
+                "metadata": {
+                    "annotations": annotations
+                }
+            }
+        )
+
+    def patch_with_cronjob_notation(self, ctx):
+        annotations = {}
+        annotations.update(
+            helpers.generate_custom_annotation(
+                "cronjob",
+                ctx.cron_job_name
+            ).to_kv()
+        )
+        self.patch_crd(
+            patch={
+                "metadata": {
+                    "annotations": annotations
+                }
+            }
+        )
+
+
 class ResultsSubscriber(IResultsSubscriber):
 
-    def __init__(self, job_name, job_task_id):
-        self.job_name = job_name
-        self.job_task_id = job_task_id
+    def __init__(self, crd_manager: CRDInstanceManager):
+        self.crd_manager = crd_manager
 
-    def receive_results(self, results):
-        print("got new results", results)
+    def receive_results(self, results: List[TestResults]):
+        """Receive the results of some the execution task.
+
+        testCases[].status
+            - Pending
+            - Running
+            - Completed
+            - Failed
+            - Unknown
+
+        What should the user see in the CRD status?
+            - The status of the whole test suite.
+            - The last execution time.
+            - The last successful execution time.
+            - The status of each test case.
+                - The message of each test case.
+
+        """
+        # prepare the patch to be applied to the CRD to report the results
+        test_cases = []
+
+        for result in results:
+            test_cases.append(
+                {
+                    # The unique name of the test case, we can consider this
+                    # as the ID of the test case.
+                    "name": result.name,
+                    # The status of the test case.
+                    "status": result.status.value,
+                    # The execution time of the test case.
+                    "executionTime": result.executionTime,
+                }
+            )
+        status = {
+            "phase": "Running",
+            "testCases": test_cases
+        }
+        patch = {
+            "status": status
+        }
+        self.crd_manager.patch_crd(patch=patch)
 
     def __hash__(self):
         return hash(id(self))
@@ -56,7 +161,6 @@ class NetworkTestSuiteHandler:
     def __init__(self, publisher: IResultsPublisher):
         self.__api_client: Optional[client.ApiClient] = None
         self.publisher = publisher
-
         logger.info("publisher: %s", id(publisher))
         print("publisher id:", id(publisher))
 
@@ -67,35 +171,29 @@ class NetworkTestSuiteHandler:
             self.__api_client = client.ApiClient()
         return self.__api_client
 
-    def __patch_crd(self, namespace: str, metadata_name: str, patch: dict):
+    def __patch_crd(self, ctx: CtxCRDInstance, patch: dict):
         """Patch the CRD with the given patch."""
         client.CustomObjectsApi(
             api_client=self._api_client
         ).patch_namespaced_custom_object(
             group="kubekarma.io",
             version="v1",
-            namespace=namespace,
+            namespace=ctx.namespace,
             plural="networkpolicytestsuites",
-            name=metadata_name,
+            name=ctx.metadata_name,
             body=patch
         )
 
-    @staticmethod
-    def _assert_all_test_suite_names_are_unique(spec: dict):
-        """Validate that all test suite names are unique.
-
-        This is required because the test suite name is used to identify each
-        test for the results.
-        """
-        test_suite = spec['testCases']
-        test_suite_names = [ts['name'] for ts in test_suite]
-        duplicates = set(
-            [x for x in test_suite_names if test_suite_names.count(x) > 1]
+    def set_crd_phase(self, ctx: CtxCRDInstance, phase: str):
+        """Set the phase of the CRD."""
+        self.__patch_crd(
+            ctx=ctx,
+            patch={
+                "status": {
+                    "phase": phase
+                }
+            }
         )
-        if duplicates:
-            raise kopf.PermanentError(
-                f"Test suite names must be unique. Duplicates: {duplicates}"
-            )
 
     def handle(self, spec, body, **kwargs):
         """A handler to receive a NetworkPolicyTestSuite creation event."""
@@ -106,84 +204,72 @@ class NetworkTestSuiteHandler:
             reason='Creation received by controller',
             message=f'Handling {body["kind"]}  <{spec["name"]}>'
         )
-        self._assert_all_test_suite_names_are_unique(spec)
 
-        namespace = body['metadata']['namespace']
-        metadata_name = body['metadata']['name']
-        schedule = spec['schedule']
         worker_task_id = uuid.uuid4().hex
-        cron_job_name = metadata_name + "-npts-" + worker_task_id[:4]
-        cron_job = self.__generate_cronjob(
-            npts_metadata_name=cron_job_name,
+        ctx = CtxCRDInstance(
             namespace=body['metadata']['namespace'],
-            schedule=schedule,
+            metadata_name=body['metadata']['name'],
+            cron_job_name=body['metadata']['name'] + "-npts-" + worker_task_id[:4], # noqa
+            worker_task_id=uuid.uuid4().hex
+        )
+
+        crd_manager = CRDInstanceManager(
+            api_client=self._api_client,
+            ctx=ctx
+        )
+
+        logger.debug("Validating CRD [%s:%s]", ctx.namespace, ctx.metadata_name)
+        errors = NetworkPolicyTestSuiteCRD().validate_spec(
+            spec=spec
+        )
+        if errors:
+            self.set_crd_phase(ctx, "Failed")
+            raise kopf.PermanentError(
+                f"Invalid spec: {yaml.dump(errors)}" # noqa
+            )
+        self.set_crd_phase(ctx, "Unknown")
+        cron_job = self.__generate_cronjob(
+            crd_instance=ctx,
+            schedule=spec['schedule'],
             task_execution_config=body['spec'],
-            worker_task_id=worker_task_id
         ).to_dict()
 
         # Adopt the cronjob to the parent object to be able to delete it
         # in cascade.
         kopf.adopt(cron_job, owner=body)
 
-        # Create the subscriber to listen for the results of the execution
-        # task.
-        subscriber = ResultsSubscriber(
-            job_name=cron_job_name,
-            job_task_id=worker_task_id
-        )
-        print("subscriber id:", id(self.publisher))
-        self.publisher.add_results_listener(
-            execution_id=worker_task_id,
-            subscriber=subscriber
-        )
-
         # Effectively create the cronjob in the cluster
         BatchV1Api(
             api_client=self._api_client
         ).create_namespaced_cron_job(
-            namespace=namespace,
+            namespace=ctx.namespace,
             body=cron_job
+        )
+
+        # Listen for the results of the execution task that run in a pod
+        # controlled by a CronJob running on a specific namespace.
+        self.publisher.add_results_listener(
+            execution_id=ctx.worker_task_id,
+            subscriber=ResultsSubscriber(crd_manager)
         )
 
         # The CRD it must change its status to "Running" in order to be
         # considered as created.
-        self.__patch_crd(
-            namespace=namespace,
-            metadata_name=metadata_name,
-            patch={
-                "status": {
-                    "phase": "Running"
-                }
-            }
-        )
+        self.set_crd_phase(ctx, "Running")
+
         # Trigger an event for the CRD related to the creation of the cronjob
         kopf.info(
             body,
             reason='Running',
-            message=f'CronJob created successfully <{cron_job_name}>'
+            message=f'CronJob created successfully <{ctx.cron_job_name}>'
         )
 
         # Patch the created CRD with annotation pointing to the created cronjob
         # and the code version used by this handler.
         # This will allow for future version perform the required changes.
-        annotations = {}
-        annotations.update(
-            helpers.generate_custom_annotation(
-                "cronjob",
-                cron_job_name
-            ).to_kv()
-        )
-        annotations.update(
-            self._get_version_handler_notation()
-        )
-        self.__patch_crd(
-            namespace=namespace,
-            metadata_name=metadata_name,
-            patch={
-                "metadata": {
-                    "annotations": annotations
-                }
-            }
+        crd_manager.patch_with_cronjob_notation(ctx)
+        crd_manager.patch_with_handler_code_version_notation(
+            handler_code_version=self.HANDLER_VERSION
         )
 
     @classmethod
@@ -196,17 +282,15 @@ class NetworkTestSuiteHandler:
 
     @staticmethod
     def __generate_cronjob(
-        npts_metadata_name,
-        namespace,
+        crd_instance: CtxCRDInstance,
         schedule,
         task_execution_config: dict,
-        worker_task_id: str
     ) -> V1CronJob:
         """Generate the job template to be used by the cronjob."""
         envs = [
             V1EnvVar(
                 name='WORKER_TASK_ID',
-                value=worker_task_id
+                value=crd_instance.worker_task_id
             ),
             V1EnvVar(
                 name='WORKER_CONTROLLER_VERSION',
@@ -223,8 +307,8 @@ class NetworkTestSuiteHandler:
         ]
         cron_job = V1CronJob()
         cron_job.metadata = V1ObjectMeta(
-            name=TOOL_NAME + "-" + npts_metadata_name,
-            namespace=namespace,
+            name=crd_instance.cron_job_name,
+            namespace=crd_instance.namespace,
         )
         cron_job.metadata.annotations = (
             NetworkTestSuiteHandler._get_version_handler_notation()

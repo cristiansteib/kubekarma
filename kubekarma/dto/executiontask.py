@@ -1,4 +1,5 @@
 import dataclasses
+import enum
 import json
 from typing import Optional
 
@@ -20,25 +21,41 @@ class ExceptionCause:
     exception_type: str
 
 
+class TestCaseStatus(enum.Enum):
+    Failed = "Failed"
+    Success = "Success"
+    NotImplemented = "NotImplemented"
+    Error = "Error"
+
+
 @dataclasses.dataclass
 class TestResults:
     name: str
-    passed: bool
-    message: str
-    exception: Optional[ExceptionCause] = None
+    status: TestCaseStatus
+    executionTime: str
+    error: Optional[ExceptionCause] = None
+
+    def __post_init__(self):
+        if type(self.status) is str:
+            self.status = TestCaseStatus(self.status)
+
+        error = self.error
+        if isinstance(error, dict):
+            self.error = ExceptionCause(**error)
 
     def to_dict(self) -> dict:
         return {
             "name": self.name,
-            "passed": self.passed,
-            "message": self.message,
-            "exception": self.exception
+            "status": self.status.value,
+            "executionTime": self.executionTime,
+            "error": self.error
         }
 
     def set_exception(self, exception: Exception):
         """Set the exception and extract the cause."""
         a_traceback = exception.__traceback__
-        self.exception = ExceptionCause(
+        self.status = TestCaseStatus.Error
+        self.error = ExceptionCause(
             message=str(exception),
             file_name=a_traceback.tb_frame.f_code.co_filename if a_traceback else None,
             line_number=a_traceback.tb_lineno if a_traceback else None,
@@ -49,8 +66,8 @@ class TestResults:
     def to_safe_dict(self) -> dict:
         """A dict that is able to be serialized to JSON."""
         data = self.to_dict()
-        if data["exception"]:
-            data["exception"] = dataclasses.asdict(data["exception"])
+        if data["error"]:
+            data["error"] = dataclasses.asdict(data["error"])
         return data
 
 

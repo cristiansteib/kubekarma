@@ -25,10 +25,9 @@ spec:
 #      testDNSResolution:
 #        host: google.com
 #        expectSuccess: true
-    - name: Test if host can be resolved by with specific DNS server
+    - name: "Test if host can be resolved by with specific DNS server"
       testDNSResolution:
         nameservers:
           - "1.1.1.1"
         host: google.com
         expectSuccess: true
-

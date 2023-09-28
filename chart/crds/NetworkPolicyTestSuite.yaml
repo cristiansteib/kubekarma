@@ -36,8 +36,13 @@ spec:
                   items:
                     type: object
                     properties:
+                      allowedToFail:
+                        type: boolean
+                        description: If true, the test case will not cause the test suite to fail
+                        default: false
                       name:
                         type: string
+                        description: The name of the test case
                       testExactDestination:
                         type: object
                         properties:
@@ -133,22 +138,25 @@ spec:
                     properties:
                       name:
                         type: string
+                        description: The name of the test case (As unique identifier)
                       status:
                         type: string
                         description: The current status of the test case
                         enum:
-                          - Pending
-                          - Running
-                          - Completed
                           - Failed
-                          - Unknown
-                      message:
+                          - Success
+                          - NotImplemented
+                          - Error
+                      error:
                         type: string
-                        description: The message associated with the test case
+                        description: If for any reason the test fails with an unexpected error, this field will contain the error message
+                      executionTime:
+                        type: string
+                        description: The time it took to execute the test case
                     required:
-                      - name
+                      - name # name is required because is like an UID
                       - status
-                      - message
+                      - executionTime
                 message:
                   type: string
                   description: The message associated with the test suite
@@ -173,3 +181,7 @@ spec:
         type: string
         description: The current status of the test suite
         jsonPath: .status.phase
+
+#
+# El estado de TestSuite  ..
+# El estado de ejecucion de los test cases

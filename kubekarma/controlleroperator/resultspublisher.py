@@ -37,6 +37,6 @@ class ResultsPublisher(IResultsPublisher):
         # Release the execution_id
         self.subscribers.pop(execution_id_token, None)
 
-    def notify_new_results(self, execution_id: str, results: dict):
+    def notify_new_results(self, execution_id: str, results):
         for subscriber in self.subscribers.get(execution_id, []):
             subscriber.receive_results(results)
