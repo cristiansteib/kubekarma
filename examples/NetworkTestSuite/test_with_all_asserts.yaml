@@ -1,5 +1,5 @@
 apiVersion: kubekarma.io/v1
-kind: NetworkPolicyTestSuite
+kind: NetworkTestSuite
 metadata:
   name: an-example-of-all-asserts
 spec:

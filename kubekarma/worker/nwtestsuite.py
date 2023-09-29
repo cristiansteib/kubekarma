@@ -15,7 +15,7 @@ class InvalidDefinition(Exception):
     ...
 
 
-class NetworkPolicyTestSuite:
+class NetworkTestSuite:
 
     @dataclasses.dataclass
     class TestCase:
@@ -33,8 +33,8 @@ class NetworkPolicyTestSuite:
         """
         Args:
             config_spec (dict): The configuration for the test suite.
-            the configuration follows the format of the NetworkPolicyTestSuite
-            CRD located on the file "chart/crds/NetworkPolicyTestSuite.yaml"
+            the configuration follows the format of the NetworkTestSuite
+            CRD located on the file "chart/crds/NetworkTestSuite.yaml"
             config_spec examples:
                 {
                   "name": "test-suite-1",

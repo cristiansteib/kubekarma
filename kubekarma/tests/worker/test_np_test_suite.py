@@ -4,15 +4,15 @@ from unittest.mock import patch
 
 import yaml
 
-from kubekarma.worker.nwtestsuite import NetworkPolicyTestSuite
+from kubekarma.worker.nwtestsuite import NetworkTestSuite
 
 
-class NetworkPolicyTestSuiteTest(unittest.TestCase):
+class NetworkTestTestCase(unittest.TestCase):
 
     @staticmethod
     def load_yaml() -> dict:
         asset_path = Path(
-            "examples/NetworkPolicyTestSuite/test_with_all_asserts.yaml"
+            "examples/NetworkTestSuite/test_with_all_asserts.yaml"
         )
         parent_path = __file__.split("/")[:-4]
         f_path = Path("/".join(parent_path)) / asset_path
@@ -22,9 +22,9 @@ class NetworkPolicyTestSuiteTest(unittest.TestCase):
     def test_process_a_spec(self):
         test_config = self.load_yaml()
         with patch(
-            "kubekarma.worker.nwtestsuite.NetworkPolicyTestSuite._run_test"
+            "kubekarma.worker.nwtestsuite.NetworkTestSuite._run_test"
         ) as _run_test_mock:
-            test_suite = NetworkPolicyTestSuite(test_config["spec"])
+            test_suite = NetworkTestSuite(test_config["spec"])
             results = test_suite.run()
             test_suite._parse_test_case(test_config["spec"]["testCases"][3])
         self.assertEqual(_run_test_mock.call_count, 4)

@@ -17,8 +17,8 @@ import yaml
 
 from kubekarma.dto.genericcrd import CRDTestExecutionStatus, \
     CRDTestPhase, TestCaseResultItem, TestCaseStatus
-from kubekarma.crddefinitions.networkpolicytestsuite import (
-    NetworkPolicyTestSuiteCRD
+from kubekarma.crddefinitions.networktestsuite import (
+    NetworkTestSuiteCRD
 )
 from kubekarma.controlleroperator.interfaces.resultspublisher import (
     IResultsPublisher,
@@ -56,7 +56,7 @@ class CRDInstanceManager:
             group="kubekarma.io",
             version="v1",
             namespace=self.ctx.namespace,
-            plural="networkpolicytestsuites",
+            plural="networktestsuites",
             name=self.ctx.metadata_name,
             body=patch
         )
@@ -168,7 +168,7 @@ class NetworkTestSuiteHandler:
     # with the annotation key format.
     HANDLER_VERSION = 'v1'
 
-    API_PLURAL = 'networkpolicytestsuites'
+    API_PLURAL = 'networktestsuites'
 
     def __init__(self, publisher: IResultsPublisher):
         self.__api_client: Optional[client.ApiClient] = None
@@ -191,7 +191,7 @@ class NetworkTestSuiteHandler:
             group="kubekarma.io",
             version="v1",
             namespace=ctx.namespace,
-            plural="networkpolicytestsuites",
+            plural="networktestsuites",
             name=ctx.metadata_name,
             body=patch
         )
@@ -212,7 +212,7 @@ class NetworkTestSuiteHandler:
         )
 
     def handle(self, spec, body, **kwargs):
-        """A handler to receive a NetworkPolicyTestSuite creation event."""
+        """A handler to receive a NetworkTestSuite creation event."""
         # NOTE: kopf._cogs.clients.events.post_event has a hardcoded
         # values to post events with "kopf" as the source.
         kopf.info(
@@ -235,7 +235,7 @@ class NetworkTestSuiteHandler:
         )
 
         logger.debug("Validating CRD [%s:%s]", ctx.namespace, ctx.metadata_name)
-        errors = NetworkPolicyTestSuiteCRD().validate_spec(
+        errors = NetworkTestSuiteCRD().validate_spec(
             spec=spec
         )
         if errors:

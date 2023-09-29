@@ -7,7 +7,7 @@ import yaml
 from kubekarma.dto.genericcrd import TestCaseResultItem
 from kubekarma.dto.executiontask import ExecutionTaskConfig
 from kubekarma import __version__ as package_version
-from kubekarma.worker.nwtestsuite import NetworkPolicyTestSuite
+from kubekarma.worker.nwtestsuite import NetworkTestSuite
 from kubekarma.worker.sender import ControllerCommunication
 
 import logging
@@ -33,7 +33,7 @@ def perform_task_execution(
             "Controller version mismatch: "
             f"{task.controller_version} != {package_version}"
         )
-    npts = NetworkPolicyTestSuite(config_spec=task.np_test_suite_spec)
+    npts = NetworkTestSuite(config_spec=task.np_test_suite_spec)
     return npts.run()
 
 

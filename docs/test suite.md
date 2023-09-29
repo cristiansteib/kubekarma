@@ -2,7 +2,7 @@
 
 ## Test Suite status
 
-A specific Test Suite (like: [`NetworkPolicyTestSuite`](../chart/crds/NetworkPolicyTestSuite.yaml)) can be in the following phases:
+A specific Test Suite (like: [`NetworkTestSuite`](../chart/crds/NetworkTestSuite.yaml)) can be in the following phases:
 
 
 |   phase   | description                                                     | 

@@ -10,7 +10,7 @@ class UndefinedCentinel:
     ...
 
 
-class NetworkPolicyTestSuiteCRD:
+class NetworkTestSuiteCRD:
     DEFINED_ASSERTIONS = [
         "testDNSResolution",
         "testIpBlock",

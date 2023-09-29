@@ -1,7 +1,7 @@
 crd:
-  kind: NetworkPolicyTestSuite
-  plural: networkpolicytestsuites
-  singular: networkpolicytestsuite
+  kind: NetworkTestSuite
+  plural: networktestsuites
+  singular: networktestsuite
   group: kubekarma.io
   scope: Namespaced
   shortNames:
