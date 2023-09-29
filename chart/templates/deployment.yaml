@@ -21,7 +21,7 @@ spec:
         ports:
           - containerPort: 8000
           - containerPort: {{ .Values.controller.grpc.port }}
-            name: grpc
+            name: grpcsrv
         env:
         - name: EXPOSED_CONTROLLER_GRPC_ADDRESS # The absolute url of the controller grpc server
           value: '{{ include "svc.headless-grpc-service-name" . }}{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.controller.grpc.port }}'

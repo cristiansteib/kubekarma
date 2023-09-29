@@ -5,7 +5,7 @@ import kopf
 import logging
 
 
-from kubekarma.controlleroperator.grpc.server import build_grpc_server
+from kubekarma.controlleroperator.grpcsrv.server import build_grpc_server
 from kubekarma.controlleroperator import get_results_publisher
 from kubekarma.controlleroperator.handlers.networktestsuite import (
     NetworkTestSuiteHandler

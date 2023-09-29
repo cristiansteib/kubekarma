@@ -1,5 +1,5 @@
-from kubekarma.controlleroperator.grpc.pb2 import health_pb2_grpc
-from kubekarma.controlleroperator.grpc.pb2.health_pb2 import (
+from kubekarma.controlleroperator.grpcsrv.pb2 import health_pb2_grpc
+from kubekarma.controlleroperator.grpcsrv.pb2.health_pb2 import (
     HealthCheckResponse
 )
 
