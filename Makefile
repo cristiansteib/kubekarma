@@ -9,7 +9,7 @@ docker_registry = private-registry.xcade.net/kubernetes/cluster-unhealthy-spamme
 all: help
 
 generate-python-code: ## Generate python code from .proto
-	# first generate shared code
-	@python3 -m grpc_tools.protoc -I ./protos --python_out=kubekarma/  --pyi_out=kubekarma/ --grpc_python_out=kubekarma/ protos/kubekarma/shared/pb2/*.proto; \
-	# generate controller code
-	@python3 -m grpc_tools.protoc -I ./protos/kubekarma --python_out=kubekarma/  --pyi_out=kubekarma/ --grpc_python_out=kubekarma/ protos/kubekarma/shared/pb2/*.proto
+	@echo "generating shared code";
+	@python3 -m grpc_tools.protoc -I protos --python_out=.  --pyi_out=. --grpc_python_out=. ./protos/kubekarma/shared/pb2/*.proto;
+	@echo "generating controller code" ;
+	@python3 -m grpc_tools.protoc -I protos --python_out=.  --pyi_out=. --grpc_python_out=. ./protos/kubekarma/controlleroperator/grpc/pb2/*.proto
