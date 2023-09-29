@@ -3,9 +3,9 @@
 ## What is KubeKarma?
 KubeKarma is a tool for continuous testing of Kubernetes applications. Currently, KubeKarma supports the following types of tests:
 
-NetworkPolicyTestSuite
+NetworkTestSuite
 
-- `NetworkPolicyTestSuite`
+- `NetworkTestSuite`
 
 ## Application Acceptance Continuous Test (AACT)
 I've defined this test as an **I define this test as an Application Acceptance Continuous Test (AACT).**

@@ -48,11 +48,14 @@ class DestinationHostAssertion(IAssertion):
             if not can_connect:
                 raise AssertionFailure(
                     clazz_name,
-                    f"HTTP failed to connect to host: {self.config.host}:{self.config.port}"
+                    "HTTP failed to connect to host: "
+                    f"{self.config.host}:{self.config.port}"
                 )
         else:
             if can_connect:
                 raise AssertionFailure(
                     clazz_name,
-                    f"HTTP connected to host: {self.config.host}:{self.config.port} when it was not expected to"
+                    f"HTTP connected to host: "
+                    f"{self.config.host}:{self.config.port} "
+                    f"when it was not expected to"
                 )

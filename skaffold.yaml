@@ -13,19 +13,27 @@ manifests:
     releases:
       - name: kubekarmar
         chartPath: chart
+        valuesFiles:
+          - dev/values.yaml
 deploy:
   kubectl:
     hooks:
       before:
         - host:
-            command: ["kubectl", "apply", "-f", "tests/namespace.yaml"]
-#         Clean the environment before performing the deployment
+            command: ["kubectl", "apply", "-f", "dev/namespace.yaml"]
+        # Clean the environment before performing the deployment
         - host:
-            command: [ "kubectl", "delete", "-f", "chart/crds/NetworkPolicyTestSuite.yaml", "--ignore-not-found=true" ]
+            command: [ "kubectl", "delete", "-f", "chart/crds/NetworkTestSuite.yaml", "--ignore-not-found=true" ]
         - host:
-            command: [ "kubectl", "delete", "-f", "tests/test_with_all_asserts.yaml", "--ignore-not-found=true", "--namespace=another-namespace" ]
+            command: [ "kubectl", "delete", "-f", "examples/NetworkTestSuite/test_with_all_asserts.yaml", "--ignore-not-found=true", "--namespace=another-namespace" ]
+
         - host:
-            command: ["kubectl", "apply", "-f", "chart/crds/NetworkPolicyTestSuite.yaml"]
+            command: ["kubectl", "apply", "-f", "chart/crds/NetworkTestSuite.yaml"]
+        # create a few Kopf-specific custom resources in the cluster
+        # kubectl apply -f https://github.com/nolar/kopf/raw/main/peering.yaml
+#        - host:
+#            command: ["kubectl", "apply", "-f", "https://github.com/nolar/kopf/raw/main/peering.yaml"]
+
 ---
 apiVersion: skaffold/v4beta6
 kind: Config
@@ -38,4 +46,4 @@ build:
         dockerfile: worker.Dockerfile
       hooks:
         after:
-          - command: ["skaffold/set-image"]
+          - command: ["dev/set-image"]

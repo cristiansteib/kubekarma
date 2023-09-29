@@ -9,10 +9,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Seems to speed things up
 ENV PYTHONUNBUFFERED=1
 
-COPY requiriments.controller.txt ./
+COPY requirements.controller.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip wheel --no-deps --wheel-dir /usr/src/app/wheels \
-    -r requiriments.controller.txt
+    -r requirements.controller.txt
 
 FROM python:3.10-slim AS app
 LABEL org.opencontainers.image.authors="Cristian Steib"
@@ -22,5 +22,10 @@ RUN pip install  --no-cache  /wheels/* && rm -rf /wheels
 WORKDIR /app
 COPY kubekarma kubekarma
 LABEL org.opencontainers.image.version="0.0.1"
+
+ENV OPERATOR_NAMESPACE="default"
+
 ENTRYPOINT ["kopf"]
+# --all-namespaces is required to watch all namespaces in order
+# to watch all CRDs of kubekarma.io
 CMD ["run", "kubekarma/controlleroperator/kopfmain.py", "--all-namespaces"]

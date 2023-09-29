@@ -5,11 +5,15 @@ import os
 @dataclasses.dataclass
 class Config:
     controller_server_host: str
+    worker_image: str
+    API_GROUP = 'kubekarma.io'
+    API_VERSION = 'v1'
 
     @classmethod
     def from_env_vars(cls) -> 'Config':
         return cls(
             controller_server_host=os.getenv("OPERATOR_SVC_HOST"),
+            worker_image=os.getenv("WORKER_DOCKER_IMAGE")
         )
 
 

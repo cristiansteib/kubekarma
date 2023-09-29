@@ -23,6 +23,8 @@ spec:
         env:
         - name: OPERATOR_SVC_HOST
           value: {{ include "svc.headless-service-url" . | quote }}
+        - name: WORKER_DOCKER_IMAGE
+          value: {{ .Values.workerImage.repository }}:{{ .Values.workerImage.tag }}
         livenessProbe:
           httpGet:
             port: 8000
