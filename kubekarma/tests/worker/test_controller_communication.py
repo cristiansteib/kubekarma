@@ -2,21 +2,22 @@ import json
 import unittest
 from unittest.mock import patch
 
-from kubekarma.dto.executiontask import TestResults
+from kubekarma.dto.genericcrd import TestCaseResultItem, TestCaseStatus
 from kubekarma.worker.sender import ControllerCommunication
 
 
 class ControllerCommunicationTestCase(unittest.TestCase):
 
-
     def test_send_results_with_exception(self):
-        test_results = TestResults(
+        test_results = TestCaseResultItem(
             name="test_name",
-            passed=False,
-            message="Test passed",
+            status=TestCaseStatus.Failed,
+            executionTime="1s",
+            lastExecutionTime="123",
         )
         test_results.set_exception(Exception("Test exception"))
         with patch("urllib3.PoolManager.request") as mock_request:
+            mock_request.return_value.status = 200
             ControllerCommunication("url").send_results(
                 "123",
                 [test_results]
