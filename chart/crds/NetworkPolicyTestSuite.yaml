@@ -125,11 +125,19 @@ spec:
                   description: The current status of the test suite
                   default: Pending
                   enum:
-                    - Pending
-                    - Running
-                    - Completed
+                    - Pending # The test suite has not started yet
+                    - Created
                     - Failed
-                    - Unknown
+                    - Suspended
+                testExecutionStatus:
+                  description: The status of the whole test suite
+                  type: string
+                  enum:
+                      - Pending # The test suite has not started yet
+                      - Succeeding # The test suite is running and all the test cases are passing
+                      - Failing # The test suite is running and at least one test case is failing
+
+                # @status.testCases is an array with information about each test case
                 testCases:
                   type: array
                   default: []
@@ -144,7 +152,7 @@ spec:
                         description: The current status of the test case
                         enum:
                           - Failed
-                          - Success
+                          - Succeeded
                           - NotImplemented
                           - Error
                       error:
@@ -156,32 +164,41 @@ spec:
                     required:
                       - name # name is required because is like an UID
                       - status
-                      - executionTime
-                message:
+                lastExecutionTime:
                   type: string
-                  description: The message associated with the test suite
-                  default: ""
+                  description: The last time the test case was executed
+                lastExecutionErrorTime:
+                  type: string
+                  description: The last error that occurred when executing the test case
+                lastSucceededTime:
+                  type: string
+                  description: The last time the test case was executed successfully
               required:
                 - phase
                 - testCases
-                - message
       additionalPrinterColumns:
       # https://github.com/kubernetes-sigs/controller-tools/issues/447
-      - name: Test Cases
-        type: string
-        description: The number of test cases in the suite
-        jsonPath: .spec.testCases[*].name
-        priority: 0
-#        format: int32
       - name: Age
         type: date
         description: The age of the suite
         jsonPath: .metadata.creationTimestamp
       - name: Phase
         type: string
-        description: The current status of the test suite
+        description: The phase of the CRD
         jsonPath: .status.phase
-
-#
-# El estado de TestSuite  ..
-# El estado de ejecucion de los test cases
+      - name: Status
+        type: string
+        description: The status of the whole test suite
+        jsonPath: .status.testExecutionStatus
+      - name: Last Success
+        type: date
+        description: The last time the test suite was executed successfully
+        jsonPath: .status.lastSucceededTime
+      - name: Last Execution
+        type: date
+        description: The last time the test suite was executed
+        jsonPath: .status.lastExecutionTime
+      - name: Last failure
+        type: date
+        description: The last time error that occurred when executing the test suite
+        jsonPath: .status.lastExecutionErrorTime

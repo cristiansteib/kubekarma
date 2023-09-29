@@ -11,11 +11,15 @@ from fastapi.responses import JSONResponse
 
 from pydantic import BaseModel
 
-from kubekarma.dto.executiontask import TestResults
+from kubekarma.dto.genericcrd import TestCaseResultItem
 from kubekarma.controlleroperator.interfaces.resultspublisher import IResultsPublisher
 from kubekarma.controlleroperator import get_results_publisher
 import logging
 from typing import List
+
+
+import uvicorn
+from uvicorn.config import Config
 
 app = FastAPI()
 
@@ -23,12 +27,12 @@ logger = logging.getLogger(__name__)
 __publisher: Optional[IResultsPublisher] = None
 
 
-# this model should be symetric with dto.executiontask.TestResults
+# this model should be symmetric with dto.genericcrd.TestCaseResultItem
 class TestResultsModel(BaseModel):
     name: str
-    status: str  # TestCaseStatus
+    status: str
     executionTime: str
-    error: Optional[dict] = None
+    lastExecutionTime: str  # time in timestamp format
 
 
 @app.exception_handler(RequestValidationError)
@@ -53,15 +57,9 @@ def post_results(execution_id: str, items: List[TestResultsModel]):
     # Convert the items to TestResults
     get_results_publisher().notify_new_results(
         execution_id,
-        results=[TestResults(**item.model_dump()) for item in items]
+        results=[TestCaseResultItem(**item.model_dump()) for item in items]
     )
     return {"item_id": execution_id}
-
-
-
-
-import uvicorn
-from uvicorn.config import Config
 
 
 class ThreadedUvicorn:

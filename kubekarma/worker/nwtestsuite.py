@@ -4,9 +4,9 @@ from typing import List
 
 import logging
 
+from kubekarma.dto.genericcrd import TestCaseResultItem, TestCaseStatus
 from kubekarma.worker.assertions.dnsresolution import DNSResolutionAssertion
 from kubekarma.worker.assertions.exception import AssertionFailure
-from kubekarma.dto.executiontask import TestCaseStatus, TestResults
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,8 @@ class NetworkPolicyTestSuite:
         if "name" not in keys:
             raise InvalidDefinition("testCases[] items must have a .name")
         test_name = _test_case.pop("name")
-        test_description = _test_case.pop("allowedToFail", None)
+        # remove this value to only keep the assertion type
+        _test_case.pop("allowedToFail", None)
         keys = set(_test_case.keys())
         if len(keys) != 1:
             raise InvalidDefinition(
@@ -92,21 +93,24 @@ class NetworkPolicyTestSuite:
         assertion = clazz.from_dict(test_case.assertion_config)
         assertion.test()
 
-    def run(self) -> List[TestResults]:
+    def run(self) -> List[TestCaseResultItem]:
         test_suite_name = self.config_spec["name"]
         logger.info(f"Running test suite {test_suite_name}")
         results = []
 
         for test in self.config_spec["testCases"]:
             start_time = time.perf_counter()
-            test_result = TestResults(
+            # Create a partial result item, the rest of the values
+            # will be filled by the controller operator.
+            test_result = TestCaseResultItem(
                 name=test["name"],
                 status=TestCaseStatus.Failed,
-                executionTime="-"
+                executionTime="-",
+                lastExecutionTime=str(time.time()),
             )
             try:
                 self._run_test(test)
-                test_result.status = TestCaseStatus.Success
+                test_result.status = TestCaseStatus.Succeeded
             except AssertionFailure as e:
                 test_result.set_exception(e)
                 logger.error(f"Test case {test['name']} failed")
@@ -115,7 +119,9 @@ class NetworkPolicyTestSuite:
             except Exception as e:
                 test_result.set_exception(e)
                 logger.exception(
-                    f"Test case {test['name']} failed with unexpected error {e}"
+                    f"Test case %s failed with unexpected error %s",
+                    test['name'],
+                    e
                 )
             finally:
                 end_time = time.perf_counter()

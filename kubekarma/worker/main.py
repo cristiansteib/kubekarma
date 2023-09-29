@@ -1,11 +1,11 @@
-import json
 import os
 from typing import List
 
 import urllib3
 import yaml
 
-from kubekarma.dto.executiontask import ExecutionTaskConfig, TestResults
+from kubekarma.dto.genericcrd import TestCaseResultItem
+from kubekarma.dto.executiontask import ExecutionTaskConfig
 from kubekarma import __version__ as package_version
 from kubekarma.worker.nwtestsuite import NetworkPolicyTestSuite
 from kubekarma.worker.sender import ControllerCommunication
@@ -25,10 +25,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def perform_task_execution(task: ExecutionTaskConfig) -> List[TestResults]:
+def perform_task_execution(
+        task: ExecutionTaskConfig
+) -> List[TestCaseResultItem]:
     if task.controller_version != package_version:
         raise Exception(
-            f"Controller version mismatch: {task.controller_version} != {package_version}"
+            "Controller version mismatch: "
+            f"{task.controller_version} != {package_version}"
         )
     npts = NetworkPolicyTestSuite(config_spec=task.np_test_suite_spec)
     return npts.run()

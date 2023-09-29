@@ -1,6 +1,7 @@
 import dataclasses
-import json
+import time
 import uuid
+from datetime import datetime
 from typing import List, Optional
 
 import kopf
@@ -14,8 +15,11 @@ from kubernetes.client import (
 )
 import yaml
 
-from kubekarma.crddefinitions.networkpolicytestsuite import NetworkPolicyTestSuiteCRD
-from kubekarma.dto.executiontask import TestResults
+from kubekarma.dto.genericcrd import CRDTestExecutionStatus, \
+    CRDTestPhase, TestCaseResultItem, TestCaseStatus
+from kubekarma.crddefinitions.networkpolicytestsuite import (
+    NetworkPolicyTestSuiteCRD
+)
 from kubekarma.controlleroperator.interfaces.resultspublisher import (
     IResultsPublisher,
     IResultsSubscriber
@@ -97,47 +101,55 @@ class ResultsSubscriber(IResultsSubscriber):
     def __init__(self, crd_manager: CRDInstanceManager):
         self.crd_manager = crd_manager
 
-    def receive_results(self, results: List[TestResults]):
+    def receive_results(self, results: List[TestCaseResultItem]):
         """Receive the results of some the execution task.
 
-        testCases[].status
-            - Pending
-            - Running
-            - Completed
-            - Failed
-            - Unknown
-
-        What should the user see in the CRD status?
-            - The status of the whole test suite.
-            - The last execution time.
-            - The last successful execution time.
-            - The status of each test case.
-                - The message of each test case.
-
+        This method is called by the publisher when the results of an
+        execution task are available. The results should be interpreted
+        and used to set  the status of the CRD.
         """
         # prepare the patch to be applied to the CRD to report the results
         test_cases = []
 
         for result in results:
-            test_cases.append(
-                {
+
+            test_case_status = {
                     # The unique name of the test case, we can consider this
                     # as the ID of the test case.
                     "name": result.name,
                     # The status of the test case.
                     "status": result.status.value,
-                    # The execution time of the test case.
+                    # The time it took to execute the test case.
                     "executionTime": result.executionTime,
                 }
-            )
-        status = {
-            "phase": "Running",
-            "testCases": test_cases
-        }
-        patch = {
-            "status": status
-        }
-        self.crd_manager.patch_crd(patch=patch)
+            if result.error:
+                test_case_status["error"] = result.error.to_string()
+            test_cases.append(test_case_status)
+
+        # Calculate the whole test suite execution status
+        test_execution_status: CRDTestExecutionStatus = (
+            CRDTestExecutionStatus.Succeeding if all(
+                [result.status in (
+                        TestCaseStatus.Succeeded,
+                        TestCaseStatus.NotImplemented
+                    ) for result in results
+                ]
+            ) else CRDTestExecutionStatus.Failing
+        )
+        current_time = datetime.utcnow()
+        current_time_str = current_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        # TODO: track last time status changed
+        self.crd_manager.patch_crd(
+            patch={
+                "status": {
+                    "lastExecutionTime": current_time_str,
+                    "lastExecutionErrorTime": current_time_str if test_execution_status == CRDTestExecutionStatus.Failing else "",
+                    "lastSucceededTime": current_time_str if test_execution_status == CRDTestExecutionStatus.Succeeding else "",
+                    "testExecutionStatus":  test_execution_status.value,
+                    "testCases": test_cases
+                }
+            }
+        )
 
     def __hash__(self):
         return hash(id(self))
@@ -184,15 +196,19 @@ class NetworkTestSuiteHandler:
             body=patch
         )
 
-    def set_crd_phase(self, ctx: CtxCRDInstance, phase: str):
+    def set_crd_phase(self, ctx: CtxCRDInstance, phase: CRDTestPhase):
         """Set the phase of the CRD."""
+        patch = {
+            "status": {
+                "phase": phase.value,
+             }
+        }
+        if phase in (CRDTestPhase.Created, CRDTestPhase.Pending, CRDTestPhase.Suspended): # noqa
+            # Generic CRD status
+            patch["status"]["testExecutionStatus"] = CRDTestExecutionStatus.Pending.value # noqa
         self.__patch_crd(
             ctx=ctx,
-            patch={
-                "status": {
-                    "phase": phase
-                }
-            }
+            patch=patch
         )
 
     def handle(self, spec, body, **kwargs):
@@ -223,11 +239,11 @@ class NetworkTestSuiteHandler:
             spec=spec
         )
         if errors:
-            self.set_crd_phase(ctx, "Failed")
+            self.set_crd_phase(ctx, CRDTestPhase.Failed)
             raise kopf.PermanentError(
                 f"Invalid spec: {yaml.dump(errors)}" # noqa
             )
-        self.set_crd_phase(ctx, "Unknown")
+        self.set_crd_phase(ctx, CRDTestPhase.Created)
         cron_job = self.__generate_cronjob(
             crd_instance=ctx,
             schedule=spec['schedule'],
@@ -252,10 +268,6 @@ class NetworkTestSuiteHandler:
             execution_id=ctx.worker_task_id,
             subscriber=ResultsSubscriber(crd_manager)
         )
-
-        # The CRD it must change its status to "Running" in order to be
-        # considered as created.
-        self.set_crd_phase(ctx, "Running")
 
         # Trigger an event for the CRD related to the creation of the cronjob
         kopf.info(

@@ -4,7 +4,7 @@ from typing import List
 
 import urllib3
 
-from kubekarma.dto.executiontask import TestResults
+from kubekarma.dto.genericcrd import TestCaseResultItem
 
 
 class ControllerNotAvailable(Exception):
@@ -32,7 +32,12 @@ class ControllerCommunication:
         except Exception as error:
             raise ControllerNotAvailable() from error
 
-    def send_results(self, task_identifier: str, results: List[TestResults]):
+    def send_results(
+            self,
+            task_identifier: str,
+            results: List[TestCaseResultItem]
+    ):
+        """Send the results of a task execution to the controller."""
         url = f"{self.controller_url}/api/v1/execution-tasks/{task_identifier}"
         payload = [result.to_safe_dict() for result in results]
         body = json.dumps(payload)
