@@ -14,3 +14,12 @@ workerImage:
   repository: localhost:5000/network-policy-test-worker
   pullPolicy: IfNotPresent
   tag: "latest"
+
+
+controller:
+  grpc:
+    address: "[::]"
+    port: 8080
+    service:
+      # @controller.grpc.service.port the exposed port by the service
+      port: 8080

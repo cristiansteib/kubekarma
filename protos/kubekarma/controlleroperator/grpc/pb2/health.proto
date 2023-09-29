@@ -1,6 +1,8 @@
 // https://github.com/grpc/grpc/blob/master/doc/health-checking.md
 syntax = "proto3";
 
+package grpc.health.v1;
+
 message HealthCheckRequest {
   string service = 1;
 }

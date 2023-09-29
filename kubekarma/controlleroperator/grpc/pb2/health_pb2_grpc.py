@@ -15,12 +15,12 @@ class HealthStub(object):
             channel: A grpc.Channel.
         """
         self.Check = channel.unary_unary(
-                '/Health/Check',
+                '/grpc.health.v1.Health/Check',
                 request_serializer=kubekarma_dot_controlleroperator_dot_grpc_dot_pb2_dot_health__pb2.HealthCheckRequest.SerializeToString,
                 response_deserializer=kubekarma_dot_controlleroperator_dot_grpc_dot_pb2_dot_health__pb2.HealthCheckResponse.FromString,
                 )
         self.Watch = channel.unary_stream(
-                '/Health/Watch',
+                '/grpc.health.v1.Health/Watch',
                 request_serializer=kubekarma_dot_controlleroperator_dot_grpc_dot_pb2_dot_health__pb2.HealthCheckRequest.SerializeToString,
                 response_deserializer=kubekarma_dot_controlleroperator_dot_grpc_dot_pb2_dot_health__pb2.HealthCheckResponse.FromString,
                 )
@@ -56,7 +56,7 @@ def add_HealthServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'Health', rpc_method_handlers)
+            'grpc.health.v1.Health', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -75,7 +75,7 @@ class Health(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Health/Check',
+        return grpc.experimental.unary_unary(request, target, '/grpc.health.v1.Health/Check',
             kubekarma_dot_controlleroperator_dot_grpc_dot_pb2_dot_health__pb2.HealthCheckRequest.SerializeToString,
             kubekarma_dot_controlleroperator_dot_grpc_dot_pb2_dot_health__pb2.HealthCheckResponse.FromString,
             options, channel_credentials,
@@ -92,7 +92,7 @@ class Health(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/Health/Watch',
+        return grpc.experimental.unary_stream(request, target, '/grpc.health.v1.Health/Watch',
             kubekarma_dot_controlleroperator_dot_grpc_dot_pb2_dot_health__pb2.HealthCheckRequest.SerializeToString,
             kubekarma_dot_controlleroperator_dot_grpc_dot_pb2_dot_health__pb2.HealthCheckResponse.FromString,
             options, channel_credentials,

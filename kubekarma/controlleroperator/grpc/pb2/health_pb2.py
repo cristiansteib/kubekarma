@@ -13,19 +13,19 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n2kubekarma/controlleroperator/grpc/pb2/health.proto\"%\n\x12HealthCheckRequest\x12\x0f\n\x07service\x18\x01 \x01(\t\"\x9a\x01\n\x13HealthCheckResponse\x12\x32\n\x06status\x18\x01 \x01(\x0e\x32\".HealthCheckResponse.ServingStatus\"O\n\rServingStatus\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x0b\n\x07SERVING\x10\x01\x12\x0f\n\x0bNOT_SERVING\x10\x02\x12\x13\n\x0fSERVICE_UNKNOWN\x10\x03\x32r\n\x06Health\x12\x32\n\x05\x43heck\x12\x13.HealthCheckRequest\x1a\x14.HealthCheckResponse\x12\x34\n\x05Watch\x12\x13.HealthCheckRequest\x1a\x14.HealthCheckResponse0\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n2kubekarma/controlleroperator/grpc/pb2/health.proto\x12\x0egrpc.health.v1\"%\n\x12HealthCheckRequest\x12\x0f\n\x07service\x18\x01 \x01(\t\"\xa9\x01\n\x13HealthCheckResponse\x12\x41\n\x06status\x18\x01 \x01(\x0e\x32\x31.grpc.health.v1.HealthCheckResponse.ServingStatus\"O\n\rServingStatus\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x0b\n\x07SERVING\x10\x01\x12\x0f\n\x0bNOT_SERVING\x10\x02\x12\x13\n\x0fSERVICE_UNKNOWN\x10\x03\x32\xae\x01\n\x06Health\x12P\n\x05\x43heck\x12\".grpc.health.v1.HealthCheckRequest\x1a#.grpc.health.v1.HealthCheckResponse\x12R\n\x05Watch\x12\".grpc.health.v1.HealthCheckRequest\x1a#.grpc.health.v1.HealthCheckResponse0\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'kubekarma.controlleroperator.grpc.pb2.health_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
-  _globals['_HEALTHCHECKREQUEST']._serialized_start=54
-  _globals['_HEALTHCHECKREQUEST']._serialized_end=91
-  _globals['_HEALTHCHECKRESPONSE']._serialized_start=94
-  _globals['_HEALTHCHECKRESPONSE']._serialized_end=248
-  _globals['_HEALTHCHECKRESPONSE_SERVINGSTATUS']._serialized_start=169
-  _globals['_HEALTHCHECKRESPONSE_SERVINGSTATUS']._serialized_end=248
-  _globals['_HEALTH']._serialized_start=250
-  _globals['_HEALTH']._serialized_end=364
+  _globals['_HEALTHCHECKREQUEST']._serialized_start=70
+  _globals['_HEALTHCHECKREQUEST']._serialized_end=107
+  _globals['_HEALTHCHECKRESPONSE']._serialized_start=110
+  _globals['_HEALTHCHECKRESPONSE']._serialized_end=279
+  _globals['_HEALTHCHECKRESPONSE_SERVINGSTATUS']._serialized_start=200
+  _globals['_HEALTHCHECKRESPONSE_SERVINGSTATUS']._serialized_end=279
+  _globals['_HEALTH']._serialized_start=282
+  _globals['_HEALTH']._serialized_end=456
 # @@protoc_insertion_point(module_scope)
