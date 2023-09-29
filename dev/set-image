@@ -1,0 +1,6 @@
+#!/bin/bash -e
+
+SKAFFOLD_IMAGE="${SKAFFOLD_IMAGE:?SKAFFOLD_IMAGE is not set}"
+
+
+yq -e -i '.workerImage.tag = strenv(SKAFFOLD_IMAGE_TAG)' dev/values.yaml

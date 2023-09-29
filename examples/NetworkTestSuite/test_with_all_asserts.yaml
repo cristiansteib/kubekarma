@@ -1,10 +1,10 @@
 apiVersion: kubekarma.io/v1
-kind: NetworkPolicyTestSuite
+kind: NetworkTestSuite
 metadata:
   name: an-example-of-all-asserts
 spec:
   name: A test suite test
-  schedule: "* * * * 1"
+  schedule: "* * * * *"
   testCases:
     - name: web-server-access
       testExactDestination:
@@ -25,10 +25,9 @@ spec:
 #      testDNSResolution:
 #        host: google.com
 #        expectSuccess: true
-    - name: Test if host can be resolved by with specific DNS server
+    - name: "Test if host can be resolved by with specific DNS server"
       testDNSResolution:
         nameservers:
           - "1.1.1.1"
         host: google.com
         expectSuccess: true
-

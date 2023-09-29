@@ -1,0 +1,4 @@
+workerImage:
+  repository: localhost:5000/network-policy-test-worker
+  pullPolicy: IfNotPresent
+  tag: "e3c3510-dirty"
