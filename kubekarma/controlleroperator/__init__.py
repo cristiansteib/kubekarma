@@ -2,7 +2,7 @@ import threading
 from typing import Optional
 
 from kubekarma.controlleroperator.resultspublisher import ResultsPublisher
-from kubekarma.controlleroperator.interfaces.resultspublisher import IResultsPublisher
+from kubekarma.controlleroperator.abc.resultspublisher import IResultsPublisher
 
 __instance_results_publisher: Optional[IResultsPublisher] = None
 

@@ -4,8 +4,8 @@ from typing import List
 import urllib3
 import yaml
 
-from kubekarma.dto.genericcrd import TestCaseResultItem
-from kubekarma.dto.executiontask import ExecutionTaskConfig
+from kubekarma.shared.genericcrd import TestCaseResultItem
+from kubekarma.shared.executiontask import ExecutionTaskConfig
 from kubekarma import __version__ as package_version
 from kubekarma.worker.nwtestsuite import NetworkTestSuite
 from kubekarma.worker.sender import ControllerCommunication

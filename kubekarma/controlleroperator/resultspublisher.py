@@ -1,6 +1,6 @@
 from typing import Dict, Set
 
-from kubekarma.controlleroperator.interfaces.resultspublisher import (
+from kubekarma.controlleroperator.abc.resultspublisher import (
     IResultsPublisher,
     IResultsSubscriber
 )

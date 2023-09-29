@@ -1,7 +1,7 @@
 """A module to represent the generic CRD object status."""
 import dataclasses
 import enum
-from typing import Dict, Optional
+from typing import Optional
 
 
 class CRDTestPhase(enum.Enum):

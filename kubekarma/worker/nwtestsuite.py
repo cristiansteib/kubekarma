@@ -4,7 +4,7 @@ from typing import List
 
 import logging
 
-from kubekarma.dto.genericcrd import TestCaseResultItem, TestCaseStatus
+from kubekarma.shared.genericcrd import TestCaseResultItem, TestCaseStatus
 from kubekarma.worker.assertions.dnsresolution import DNSResolutionAssertion
 from kubekarma.worker.assertions.exception import AssertionFailure
 

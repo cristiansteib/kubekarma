@@ -11,8 +11,8 @@ from fastapi.responses import JSONResponse
 
 from pydantic import BaseModel
 
-from kubekarma.dto.genericcrd import TestCaseResultItem
-from kubekarma.controlleroperator.interfaces.resultspublisher import IResultsPublisher
+from kubekarma.shared.genericcrd import TestCaseResultItem
+from kubekarma.controlleroperator.abc.resultspublisher import IResultsPublisher
 from kubekarma.controlleroperator import get_results_publisher
 import logging
 from typing import List
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 __publisher: Optional[IResultsPublisher] = None
 
 
-# this model should be symmetric with dto.genericcrd.TestCaseResultItem
+# this model should be symmetric with shared.genericcrd.TestCaseResultItem
 class TestResultsModel(BaseModel):
     name: str
     status: str

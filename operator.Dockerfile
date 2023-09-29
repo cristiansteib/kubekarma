@@ -20,7 +20,9 @@ ENV PYTHONPATH="${PYTHONPATH}:/app"
 COPY --from=builder  /usr/src/app/wheels /wheels
 RUN pip install  --no-cache  /wheels/* && rm -rf /wheels
 WORKDIR /app
-COPY kubekarma kubekarma
+COPY kubekarma/controlleroperator   kubekarma/controlleroperator
+COPY kubekarma/shared               kubekarma/shared
+
 LABEL org.opencontainers.image.version="0.0.1"
 
 ENV OPERATOR_NAMESPACE="default"

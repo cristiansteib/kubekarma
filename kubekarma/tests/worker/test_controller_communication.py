@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest.mock import patch
 
-from kubekarma.dto.genericcrd import TestCaseResultItem, TestCaseStatus
+from kubekarma.shared.genericcrd import TestCaseResultItem, TestCaseStatus
 from kubekarma.worker.sender import ControllerCommunication
 
 

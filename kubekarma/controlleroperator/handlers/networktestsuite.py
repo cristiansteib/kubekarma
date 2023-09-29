@@ -1,5 +1,4 @@
 import dataclasses
-import time
 import uuid
 from datetime import datetime
 from typing import List, Optional
@@ -15,12 +14,12 @@ from kubernetes.client import (
 )
 import yaml
 
-from kubekarma.dto.genericcrd import CRDTestExecutionStatus, \
+from kubekarma.shared.genericcrd import CRDTestExecutionStatus, \
     CRDTestPhase, TestCaseResultItem, TestCaseStatus
-from kubekarma.crddefinitions.networktestsuite import (
+from kubekarma.shared.crd.networktestsuite import (
     NetworkTestSuiteCRD
 )
-from kubekarma.controlleroperator.interfaces.resultspublisher import (
+from kubekarma.controlleroperator.abc.resultspublisher import (
     IResultsPublisher,
     IResultsSubscriber
 )

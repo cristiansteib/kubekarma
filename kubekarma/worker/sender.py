@@ -4,7 +4,7 @@ from typing import List
 
 import urllib3
 
-from kubekarma.dto.genericcrd import TestCaseResultItem
+from kubekarma.shared.genericcrd import TestCaseResultItem
 
 
 class ControllerNotAvailable(Exception):

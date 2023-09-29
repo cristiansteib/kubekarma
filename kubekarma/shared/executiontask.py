@@ -1,7 +1,4 @@
 import dataclasses
-import enum
-import json
-from typing import Optional
 
 
 @dataclasses.dataclass
