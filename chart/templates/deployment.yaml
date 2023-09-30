@@ -24,7 +24,7 @@ spec:
             name: grpcsrv
         env:
         - name: EXPOSED_CONTROLLER_GRPC_ADDRESS # The absolute url of the controller grpc server
-          value: '{{ include "svc.headless-grpc-service-name" . }}{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.controller.grpc.port }}'
+          value: '{{ include "svc.headless-grpc-service-name" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.controller.grpc.port }}'
         - name: WORKER_DOCKER_IMAGE
           value: {{ .Values.workerImage.repository }}:{{ .Values.workerImage.tag }}
         livenessProbe:

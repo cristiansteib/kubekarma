@@ -1,10 +1,9 @@
-import json
 import logging
-from typing import List
 
+import grpc
 import urllib3
 
-from kubekarma.shared.genericcrd import TestCaseResultItem
+from kubekarma.shared.pb2 import controller_pb2_grpc, controller_pb2
 
 
 class ControllerNotAvailable(Exception):
@@ -16,43 +15,18 @@ logger = logging.getLogger(__name__)
 
 class ControllerCommunication:
 
-    def __init__(self, controller_url: str):
-        self.controller_url = controller_url
+    def __init__(self, controller_address: str):
         timeout = urllib3.Timeout(connect=2.0, read=5.0)
         self.http = urllib3.PoolManager(timeout=timeout)
-
-    def ping_controller(self) -> bool:
-        try:
-            response = self.http.request(
-                "GET",
-                f"{self.controller_url}/healthz",
-            )
-            logger.info(f"Controller /healthz response: {response.status}")
-            return response.status == 200
-        except Exception as error:
-            raise ControllerNotAvailable() from error
+        logger.info("connecting to controller at %s", controller_address)
+        self.channel = grpc.insecure_channel(controller_address)
+        self.controller = controller_pb2_grpc.ControllerServiceStub(
+            self.channel
+        )
 
     def send_results(
-            self,
-            task_identifier: str,
-            results: List[TestCaseResultItem]
+        self,
+        results: controller_pb2.ProcessTestSuiteResultsRequest
     ):
         """Send the results of a task execution to the controller."""
-        url = f"{self.controller_url}/api/v1/execution-tasks/{task_identifier}"
-        payload = [result.to_safe_dict() for result in results]
-        body = json.dumps(payload)
-        try:
-            response = self.http.request(
-                "POST",
-                url,
-                body=body,
-                headers={
-                    "Content-Type": "application/json"
-                }
-            )
-            if response.status != 200:
-                raise ControllerNotAvailable(
-                    f"Failed to send results to controller: {response.status}"
-                )
-        except Exception as error:
-            raise ControllerNotAvailable() from error
+        self.controller.ProcessTestSuiteResults(results)

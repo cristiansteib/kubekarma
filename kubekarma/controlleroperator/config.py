@@ -12,7 +12,7 @@ class Config:
     @classmethod
     def from_env_vars(cls) -> 'Config':
         return cls(
-            controller_server_host=os.getenv("OPERATOR_SVC_HOST"),
+            controller_server_host=os.getenv("EXPOSED_CONTROLLER_GRPC_ADDRESS"),
             worker_image=os.getenv("WORKER_DOCKER_IMAGE")
         )
 

@@ -1,3 +1,4 @@
+from kubekarma.controlleroperator import get_results_publisher
 from kubekarma.shared.pb2 import controller_pb2_grpc, controller_pb2
 
 
@@ -8,6 +9,10 @@ class ControllerServiceServicer(controller_pb2_grpc.ControllerServiceServicer):
         request: controller_pb2.ProcessTestSuiteResultsRequest,
         context
     ):
-        # context.set_code(grpcsrv.StatusCode.UNIMPLEMENTED)
-        # context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        get_results_publisher().notify_new_results(
+            request.token,
+            results=request
+        )
+        return controller_pb2.ProcessTestSuiteResultsResponse(
+            message="ok"
+        )

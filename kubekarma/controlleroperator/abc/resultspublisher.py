@@ -26,7 +26,7 @@ class IResultsPublisher(ABC):
     def add_results_listener(
         self,
         execution_id: str,
-        subscriber: IResultsSubscriber
+        subscriber: IResultsSubscriber[T]
     ):
         """Add a new listener to the results of the execution task."""
 
@@ -35,5 +35,5 @@ class IResultsPublisher(ABC):
         """Remove all the listeners for the given execution task."""
 
     @abstractmethod
-    def notify_new_results(self, execution_id, results: Any):
+    def notify_new_results(self, execution_id, results: T):
         """Receive the results of some the execution task."""

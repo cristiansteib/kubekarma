@@ -4,8 +4,9 @@ from typing import List
 import urllib3
 import yaml
 
-from kubekarma.shared.genericcrd import TestCaseResultItem
 from kubekarma.shared.executiontask import ExecutionTaskConfig
+from kubekarma.shared.pb2 import controller_pb2
+
 from kubekarma import __version__ as package_version
 from kubekarma.worker.nwtestsuite import NetworkTestSuite
 from kubekarma.worker.sender import ControllerCommunication
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 def perform_task_execution(
         task: ExecutionTaskConfig
-) -> List[TestCaseResultItem]:
+) -> List[controller_pb2.TestCaseResult]:
     if task.controller_version != package_version:
         raise Exception(
             "Controller version mismatch: "
@@ -62,9 +63,6 @@ if __name__ == "__main__":
     validate_envs_are_set()
     controller_url = os.getenv("NPTS_CONTROLLER_OPERATOR_URL")
     controller = ControllerCommunication(controller_url)
-    succeed = controller.ping_controller()
-    if not succeed:
-        raise Exception(f"Controller is not available: {controller_url}")
     task_work_identifier = os.getenv("WORKER_TASK_ID")
     task_config = ExecutionTaskConfig(
         identifier=task_work_identifier,
@@ -72,4 +70,13 @@ if __name__ == "__main__":
         np_test_suite_spec=read_yaml(os.getenv("WORKER_TASK_EXECUTION_CONFIG")),
     )
     results = perform_task_execution(task_config)
-    controller.send_results(task_config.identifier, results)
+    # ControllerCommunication and is too tight to the proto,
+    # it should be agnostic to the communication channel, and instead
+    # use a DTO. But, to avoid the overhead of create classes and conversions
+    # I will keep it like this for now.
+    controller.send_results(
+            controller_pb2.ProcessTestSuiteResultsRequest(
+                token=task_config.identifier,
+                test_case_results=results
+            )
+    )

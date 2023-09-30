@@ -1,7 +1,7 @@
 import dataclasses
 import uuid
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 import kopf
 from kubernetes import client
@@ -15,7 +15,7 @@ from kubernetes.client import (
 import yaml
 
 from kubekarma.shared.genericcrd import CRDTestExecutionStatus, \
-    CRDTestPhase, TestCaseResultItem, TestCaseStatus
+    CRDTestPhase, TestCaseStatus
 from kubekarma.shared.crd.networktestsuite import (
     NetworkTestSuiteCRD
 )
@@ -28,6 +28,8 @@ from kubekarma.controlleroperator import TOOL_NAME
 from kubekarma.controlleroperator.config import config
 
 import logging
+
+from kubekarma.shared.pb2 import controller_pb2
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +102,24 @@ class ResultsSubscriber(IResultsSubscriber):
     def __init__(self, crd_manager: CRDInstanceManager):
         self.crd_manager = crd_manager
 
-    def receive_results(self, results: List[TestCaseResultItem]):
+    @staticmethod
+    def get_status(status: controller_pb2.TestStatus) -> TestCaseStatus:
+        """Return the test case status defined by the CRD."""
+        if status == controller_pb2.TestStatus.SUCCEEDED:
+            return TestCaseStatus.Succeeded
+        elif status == controller_pb2.TestStatus.FAILED:
+            return TestCaseStatus.Failed
+        elif status == controller_pb2.TestStatus.NOTIMPLEMENTED:
+            return TestCaseStatus.NotImplemented
+        elif status == controller_pb2.TestStatus.ERROR:
+            return TestCaseStatus.Error
+        else:
+            raise Exception(f"Unknown status: {status}")
+
+    def receive_results(
+        self,
+        results: controller_pb2.ProcessTestSuiteResultsRequest
+    ):
         """Receive the results of some the execution task.
 
         This method is called by the publisher when the results of an
@@ -109,32 +128,30 @@ class ResultsSubscriber(IResultsSubscriber):
         """
         # prepare the patch to be applied to the CRD to report the results
         test_cases = []
-
-        for result in results:
-
+        # The whole test execution status
+        test_execution_status = CRDTestExecutionStatus.Succeeding
+        for result in results.test_case_results:
+            test_status = self.get_status(result.status)
             test_case_status = {
                     # The unique name of the test case, we can consider this
                     # as the ID of the test case.
                     "name": result.name,
                     # The status of the test case.
-                    "status": result.status.value,
+                    "status": test_status.value,
                     # The time it took to execute the test case.
-                    "executionTime": result.executionTime,
+                    "executionTime": result.execution_duration,
                 }
-            if result.error:
-                test_case_status["error"] = result.error.to_string()
+
+            # Check if the whole test suite should be marked as failing
+            test_execution_status = (
+                CRDTestExecutionStatus.Failing
+                if test_status in (TestCaseStatus.Failed, TestCaseStatus.Error)
+                else test_execution_status
+            )
+            if test_status == TestCaseStatus.Error:
+                test_case_status["error"] = result.error_message
             test_cases.append(test_case_status)
 
-        # Calculate the whole test suite execution status
-        test_execution_status: CRDTestExecutionStatus = (
-            CRDTestExecutionStatus.Succeeding if all(
-                [result.status in (
-                        TestCaseStatus.Succeeded,
-                        TestCaseStatus.NotImplemented
-                    ) for result in results
-                ]
-            ) else CRDTestExecutionStatus.Failing
-        )
         current_time = datetime.utcnow()
         current_time_str = current_time.strftime("%Y-%m-%dT%H:%M:%SZ")
         # TODO: track last time status changed

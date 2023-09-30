@@ -4,9 +4,10 @@ from typing import List
 
 import logging
 
-from kubekarma.shared.genericcrd import TestCaseResultItem, TestCaseStatus
 from kubekarma.worker.assertions.dnsresolution import DNSResolutionAssertion
 from kubekarma.worker.assertions.exception import AssertionFailure
+from kubekarma.shared.pb2.controller_pb2 import TestCaseResult
+from kubekarma.shared.pb2 import controller_pb2
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,20 @@ class NetworkTestSuite:
         assertion = clazz.from_dict(test_case.assertion_config)
         assertion.test()
 
-    def run(self) -> List[TestCaseResultItem]:
+    @staticmethod
+    def __stringify_exception(e: Exception) -> str:
+        exception_type = type(e).__name__
+        message = str(e)
+        a_traceback = e.__traceback__
+        file_name = a_traceback.tb_frame.f_code.co_filename if a_traceback else None
+        line_number = a_traceback.tb_lineno if a_traceback else None
+        function_name = a_traceback.tb_frame.f_code.co_name if a_traceback else None
+        return (
+            f"{exception_type}: {message}\n"
+            f"  File \"{file_name}\", line {line_number}, in {function_name}"
+        )
+
+    def run(self) -> List[TestCaseResult]:
         test_suite_name = self.config_spec["name"]
         logger.info(f"Running test suite {test_suite_name}")
         results = []
@@ -102,30 +116,32 @@ class NetworkTestSuite:
             start_time = time.perf_counter()
             # Create a partial result item, the rest of the values
             # will be filled by the controller operator.
-            test_result = TestCaseResultItem(
+            test_result = TestCaseResult(
                 name=test["name"],
-                status=TestCaseStatus.Failed,
-                executionTime="-",
-                lastExecutionTime=str(time.time()),
+                status=controller_pb2.TestStatus.FAILED,
+                execution_duration="-",
+                execution_start_time=str(time.time()),
             )
             try:
                 self._run_test(test)
-                test_result.status = TestCaseStatus.Succeeded
+                test_result.status = controller_pb2.TestStatus.SUCCEEDED
             except AssertionFailure as e:
-                test_result.set_exception(e)
                 logger.error(f"Test case {test['name']} failed")
             except NotImplementedError:
-                test_result.status = TestCaseStatus.NotImplemented
+                test_result.status = controller_pb2.TestStatus.NOTIMPLEMENTED
             except Exception as e:
-                test_result.set_exception(e)
                 logger.exception(
                     f"Test case %s failed with unexpected error %s",
                     test['name'],
                     e
                 )
+                test_result.status = controller_pb2.TestStatus.ERROR
+                test_result.error_message = self.__stringify_exception(e)
             finally:
                 end_time = time.perf_counter()
-                test_result.executionTime = f"{end_time - start_time:0.4f}s"
+                test_result.execution_duration = (
+                    f"{end_time - start_time:0.4f}s"
+                )
                 results.append(test_result)
 
         return results
