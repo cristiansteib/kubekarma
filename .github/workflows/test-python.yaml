@@ -11,12 +11,12 @@ jobs:
       with:
         python-version: '3.10'
         cache: 'pip' # caching pip dependencies
+    - run: pip install -r requirements.test.txt
+
 #    - name: Set up Python
 #      uses: actions/setup-python@v4
 #      with:
 #        python-version: '3.x'
-    - name: Install tox and any other packages
-      run: pip install tox
     - name: Run linter
       run: tox -e lint-imports
 
