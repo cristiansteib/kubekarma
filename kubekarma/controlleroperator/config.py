@@ -1,5 +1,5 @@
 import dataclasses
-import os
+from kubekarma.controlleroperator import envs as _envs
 
 
 @dataclasses.dataclass
@@ -11,9 +11,10 @@ class Config:
 
     @classmethod
     def from_env_vars(cls) -> 'Config':
+        envs = _envs.Envs()
         return cls(
-            controller_server_host=os.getenv("EXPOSED_CONTROLLER_GRPC_ADDRESS"),
-            worker_image=os.getenv("WORKER_DOCKER_IMAGE")
+            controller_server_host=envs.get_exposed_controller_grpc_address(),
+            worker_image=envs.get_worker_docker_image()
         )
 
 

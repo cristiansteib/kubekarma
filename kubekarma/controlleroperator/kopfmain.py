@@ -4,7 +4,7 @@ from datetime import datetime
 import kopf
 import logging
 
-
+from kubekarma.controlleroperator.config import config
 from kubekarma.controlleroperator.grpcsrv.server import build_grpc_server
 from kubekarma.controlleroperator import get_results_publisher
 from kubekarma.controlleroperator.handlers.networktestsuite import (
@@ -32,10 +32,6 @@ crd_network_policy_tes_suite_handler = NetworkTestSuiteHandler(
 # because the http server needs the publisher instance to notify the results.
 http_server_thread = get_threaded_server(http_host="0.0.0.0")
 grpc_server = build_grpc_server("[::]:8080")
-
-
-API_GROUP = 'kubekarma.io'
-API_VERSION = 'v1'
 
 
 @kopf.on.login()
@@ -94,6 +90,8 @@ def parse_api_version(api_version: str) -> ApiVersion:
 
 
 (kopf.on.create(
-    API_GROUP, API_VERSION, crd_network_policy_tes_suite_handler.API_PLURAL
+    config.API_GROUP,
+    config.API_VERSION,
+    crd_network_policy_tes_suite_handler.API_PLURAL
 )(crd_network_policy_tes_suite_handler.handle))
 

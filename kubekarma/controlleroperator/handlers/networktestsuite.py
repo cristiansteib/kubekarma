@@ -14,7 +14,7 @@ from kubernetes.client import (
 )
 import yaml
 
-from kubekarma.shared.genericcrd import CRDTestExecutionStatus, \
+from kubekarma.shared.crd.genericcrd import CRDTestExecutionStatus, \
     CRDTestPhase, TestCaseStatus
 from kubekarma.shared.crd.networktestsuite import (
     NetworkTestSuiteCRD
