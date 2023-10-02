@@ -1,7 +1,7 @@
 import unittest
 
-from worker.networksuite.dnsresolution import DNSResolutionAssertion
-from kubekarma.worker.assertions.exception import AssertionFailure
+from kubekarma.worker.abs.exception import AssertionFailure
+from kubekarma.worker.networksuite.dnsresolution import DNSResolutionAssertion
 
 
 class DnsResolutionAssertionTest(unittest.TestCase):
