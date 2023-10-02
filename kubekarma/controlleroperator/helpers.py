@@ -21,5 +21,3 @@ def generate_custom_annotation(
         f"{config.API_GROUP}/{key}",
         value
     )
-
-

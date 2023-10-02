@@ -4,21 +4,24 @@ from datetime import datetime
 import kopf
 import logging
 
-import kubernetes
-
+from kubekarma.controlleroperator.kinds.networktestsuite import API_PLURAL
+from kubekarma.controlleroperator.config import config
+from kubekarma.controlleroperator.grpcsrv.server import build_grpc_server
 from kubekarma.controlleroperator import get_results_publisher
-from kubekarma.controlleroperator.handlers.networktestsuite import (
+from kubekarma.controlleroperator.kinds.networktestsuite.networktestsuite import (
     NetworkTestSuiteHandler
 )
 from kubekarma.controlleroperator.httpserver import get_threaded_server
 from kubernetes import client
 
 
-_logger = logging.getLogger(__name__)
-
+logger = logging.getLogger(__name__)
 api_client = client.ApiClient()
 
 publisher = get_results_publisher()
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
 
 
 crd_network_policy_tes_suite_handler = NetworkTestSuiteHandler(
@@ -29,43 +32,7 @@ crd_network_policy_tes_suite_handler = NetworkTestSuiteHandler(
 # I need to share the memory space between the kopf process and the http server
 # because the http server needs the publisher instance to notify the results.
 http_server_thread = get_threaded_server(http_host="0.0.0.0")
-
-
-class KubernetesApi:
-    """An abstract layer to talk with the Kubernetes API."""
-
-    def __init__(self, apps_api: kubernetes.client.AppsV1Api):
-        self.apps_api = apps_api
-
-    def mutate_crd_satus(self, body, new_status):
-        # TODO: improve this method to be more generic
-        c_api = kubernetes.client.CustomObjectsApi(
-            api_client=self.apps_api.api_client
-        )
-        namespace = body['metadata']['namespace']
-        api_version = parse_api_version(body['apiVersion'])
-        a_object = c_api.get_namespaced_custom_object(
-            group=api_version.group,
-            version=api_version.version,
-            namespace=namespace,
-            plural=crd_network_policy_tes_suite_handler.API_PLURAL,
-            name=body['metadata']['name']
-        )
-        status = a_object.get('status', {})
-        status['phase'] = new_status
-        a_object['status'] = status
-        c_api.patch_namespaced_custom_object(
-            group=api_version.group,
-            version=api_version.version,
-            namespace=namespace,
-            plural=crd_network_policy_tes_suite_handler.API_PLURAL,
-            name=body['metadata']['name'],
-            body=status
-        )
-
-
-API_GROUP = 'kubekarma.io'
-API_VERSION = 'v1'
+grpc_server = build_grpc_server("[::]:8080")
 
 
 @kopf.on.login()
@@ -90,14 +57,21 @@ def configure(settings: kopf.OperatorSettings, **_):
 
 @kopf.on.startup()
 def start_http_server(**kwargs):
+    global grpc_server
     global http_server_thread
     http_server_thread.start()
+    logger.info("Starting gRPC server...")
+    grpc_server.start()
 
 
 @kopf.on.cleanup()
 def stop_results_receiver(**kwargs):
     global http_server_thread
+    global grpc_server
     http_server_thread.stop()
+    logger.info("Stopping gRPC server...")
+    grpc_server.stop(0)
+    logger.info("Goodbye! 👋")
 
 
 @kopf.on.probe(id='now')
@@ -117,6 +91,7 @@ def parse_api_version(api_version: str) -> ApiVersion:
 
 
 (kopf.on.create(
-    API_GROUP, API_VERSION, crd_network_policy_tes_suite_handler.API_PLURAL
-)(crd_network_policy_tes_suite_handler.handle))
-
+    config.API_GROUP,
+    config.API_VERSION,
+    API_PLURAL
+)(crd_network_policy_tes_suite_handler.handle_create))

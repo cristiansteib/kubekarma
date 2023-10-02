@@ -1,6 +1,6 @@
 from typing import Dict, Set
 
-from kubekarma.controlleroperator.interfaces.resultspublisher import (
+from kubekarma.controlleroperator.abc.resultspublisher import (
     IResultsPublisher,
     IResultsSubscriber
 )
@@ -34,8 +34,6 @@ class ResultsPublisher(IResultsPublisher):
         # Delete all abject to avoid memory leaks.
         for subscriber in self.subscribers.pop(execution_id_token, []):
             del subscriber
-        # Release the execution_id
-        self.subscribers.pop(execution_id_token, None)
 
     def notify_new_results(self, execution_id: str, results):
         for subscriber in self.subscribers.get(execution_id, []):

@@ -1,0 +1,10 @@
+[importlinter]
+root_package = kubekarma
+
+[importlinter:contract:my-layers-contract]
+name = The most important layers
+type = layers
+layers=
+    kubekarma.controlleroperator
+    kubekarma.worker
+    kubekarma.shared
