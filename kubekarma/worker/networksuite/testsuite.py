@@ -4,19 +4,18 @@ from typing import List
 
 import logging
 
-from kubekarma.worker.assertions.dnsresolution import DNSResolutionAssertion
-from kubekarma.worker.assertions.exception import AssertionFailure
+from kubekarma.worker import utils
+from kubekarma.worker.abs.exception import AssertionFailure, InvalidDefinition
+from kubekarma.worker.networksuite.dnsresolution import DNSResolutionAssertion
 from kubekarma.shared.pb2.controller_pb2 import TestCaseResult
 from kubekarma.shared.pb2 import controller_pb2
 
 logger = logging.getLogger(__name__)
 
 
-class InvalidDefinition(Exception):
-    ...
-
-
 class NetworkTestSuite:
+
+    KIND = "NetworkTestSuite"
 
     @dataclasses.dataclass
     class TestCase:
@@ -94,19 +93,6 @@ class NetworkTestSuite:
         assertion = clazz.from_dict(test_case.assertion_config)
         assertion.test()
 
-    @staticmethod
-    def __stringify_exception(e: Exception) -> str:
-        exception_type = type(e).__name__
-        message = str(e)
-        a_traceback = e.__traceback__
-        file_name = a_traceback.tb_frame.f_code.co_filename if a_traceback else None
-        line_number = a_traceback.tb_lineno if a_traceback else None
-        function_name = a_traceback.tb_frame.f_code.co_name if a_traceback else None
-        return (
-            f"{exception_type}: {message}\n"
-            f"  File \"{file_name}\", line {line_number}, in {function_name}"
-        )
-
     def run(self) -> List[TestCaseResult]:
         test_suite_name = self.config_spec["name"]
         logger.info(f"Running test suite {test_suite_name}")
@@ -125,18 +111,18 @@ class NetworkTestSuite:
             try:
                 self._run_test(test)
                 test_result.status = controller_pb2.TestStatus.SUCCEEDED
-            except AssertionFailure as e:
+            except AssertionFailure:
                 logger.error(f"Test case {test['name']} failed")
             except NotImplementedError:
                 test_result.status = controller_pb2.TestStatus.NOTIMPLEMENTED
             except Exception as e:
                 logger.exception(
-                    f"Test case %s failed with unexpected error %s",
+                    "Test case %s failed with unexpected error %s",
                     test['name'],
                     e
                 )
                 test_result.status = controller_pb2.TestStatus.ERROR
-                test_result.error_message = self.__stringify_exception(e)
+                test_result.error_message = utils.stringify_exception(e)
             finally:
                 end_time = time.perf_counter()
                 test_result.execution_duration = (

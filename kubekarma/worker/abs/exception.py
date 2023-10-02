@@ -7,3 +7,7 @@ class AssertionFailure(Exception):
     ):
         self.assertion = assertion
         self.message = message
+
+
+class InvalidDefinition(Exception):
+    ...

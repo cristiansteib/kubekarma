@@ -2,9 +2,9 @@ import dataclasses
 
 import urllib3
 
-from kubekarma.worker.assertions.abs import IAssertion
-from kubekarma.worker.assertions.exception import AssertionFailure
-from kubekarma.worker.nwtestsuite import logger
+from kubekarma.worker.networksuite.testsuite import logger
+from kubekarma.worker.abs.assertion import IAssertion
+from kubekarma.worker.abs.exception import AssertionFailure
 
 timeout = urllib3.Timeout(connect=2.0, read=5.0)
 http = urllib3.PoolManager(timeout=timeout)
@@ -17,14 +17,6 @@ class DestinationHostAssertion(IAssertion):
         host: str
         port: int
         expect_success: bool
-
-        @classmethod
-        def from_dict(cls, d: dict):
-            return cls(
-                host=d['host'],
-                port=d['port'],
-                expect_success=d['expectSuccess']
-            )
 
     def __init__(self, config: Config):
         self.config = config

@@ -28,12 +28,11 @@ class NetworkTestSuiteCRD:
         _spec = deepcopy(spec)
         errors = []
         # testCases items should only define one assertion type.
-        test_suite_name = _spec["name"]
         test_cases: List[Dict] = _spec["testCases"]
         test_case_names = []
         for index, test_case in enumerate(test_cases):
             # pop element if exists
-            allowed_to_fail = test_case.pop("allowedToFail", UndefinedCentinel)
+            test_case.pop("allowedToFail", UndefinedCentinel)
             name = test_case.pop("name", UndefinedCentinel)
             if name is UndefinedCentinel:
                 errors.append(
@@ -65,5 +64,3 @@ class NetworkTestSuiteCRD:
             )
 
         return errors
-
-

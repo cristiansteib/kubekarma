@@ -5,8 +5,8 @@ from typing import Optional
 import dns.exception
 from dns import resolver
 
-from kubekarma.worker.assertions.abs import AssertionResult, IAssertion
-from kubekarma.worker.assertions.exception import AssertionFailure
+from kubekarma.worker.abs.assertion import IAssertion
+from kubekarma.worker.abs.exception import AssertionFailure
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +36,7 @@ class DNSResolutionAssertion(IAssertion):
             DNSResolutionAssertion.Config.from_dict(d)
         )
 
-    def test(self) -> AssertionResult:
-        clazz_name_fqn = f"{self.__module__}.{self.__class__.__name__}"
+    def test(self):
         clazz_name = self.__class__.__name__
         try:
             res = resolver.Resolver()

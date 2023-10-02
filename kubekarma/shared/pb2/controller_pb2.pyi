@@ -32,14 +32,16 @@ class TestCaseResult(_message.Message):
     def __init__(self, name: _Optional[str] = ..., status: _Optional[_Union[TestStatus, str]] = ..., execution_duration: _Optional[str] = ..., execution_start_time: _Optional[str] = ..., error_message: _Optional[str] = ...) -> None: ...
 
 class ProcessTestSuiteResultsRequest(_message.Message):
-    __slots__ = ["name", "test_case_results", "token"]
+    __slots__ = ["name", "started_at_time", "test_case_results", "token"]
     NAME_FIELD_NUMBER: _ClassVar[int]
+    STARTED_AT_TIME_FIELD_NUMBER: _ClassVar[int]
     TEST_CASE_RESULTS_FIELD_NUMBER: _ClassVar[int]
     TOKEN_FIELD_NUMBER: _ClassVar[int]
     name: str
+    started_at_time: str
     test_case_results: _containers.RepeatedCompositeFieldContainer[TestCaseResult]
     token: str
-    def __init__(self, name: _Optional[str] = ..., test_case_results: _Optional[_Iterable[_Union[TestCaseResult, _Mapping]]] = ..., token: _Optional[str] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., started_at_time: _Optional[str] = ..., test_case_results: _Optional[_Iterable[_Union[TestCaseResult, _Mapping]]] = ..., token: _Optional[str] = ...) -> None: ...
 
 class ProcessTestSuiteResultsResponse(_message.Message):
     __slots__ = ["message"]

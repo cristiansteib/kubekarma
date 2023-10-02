@@ -35,9 +35,12 @@ message TestCaseResult {
 message ProcessTestSuiteResultsRequest {
   // name: is the name of the test suite
   string name = 1;
-  repeated TestCaseResult test_case_results = 2;
+  // the time when the test suite started executing
+  // it should be in ISO 8601 format
+  string started_at_time = 2;
+  repeated TestCaseResult test_case_results = 3;
   // token: is used to identify the test suite execution
-  string token = 3;
+  string token = 4;
 }
 
 

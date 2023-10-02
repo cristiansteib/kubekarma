@@ -4,10 +4,11 @@ from datetime import datetime
 import kopf
 import logging
 
+from kubekarma.controlleroperator.kinds.networktestsuite import API_PLURAL
 from kubekarma.controlleroperator.config import config
 from kubekarma.controlleroperator.grpcsrv.server import build_grpc_server
 from kubekarma.controlleroperator import get_results_publisher
-from kubekarma.controlleroperator.handlers.networktestsuite import (
+from kubekarma.controlleroperator.kinds.networktestsuite.networktestsuite import (
     NetworkTestSuiteHandler
 )
 from kubekarma.controlleroperator.httpserver import get_threaded_server
@@ -92,6 +93,5 @@ def parse_api_version(api_version: str) -> ApiVersion:
 (kopf.on.create(
     config.API_GROUP,
     config.API_VERSION,
-    crd_network_policy_tes_suite_handler.API_PLURAL
-)(crd_network_policy_tes_suite_handler.handle))
-
+    API_PLURAL
+)(crd_network_policy_tes_suite_handler.handle_create))

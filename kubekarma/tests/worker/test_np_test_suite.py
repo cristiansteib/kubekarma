@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import yaml
 
-from kubekarma.worker.nwtestsuite import NetworkTestSuite
+from worker.networksuite.testsuite import NetworkTestSuite
 
 
 class NetworkTestTestCase(unittest.TestCase):
@@ -25,6 +25,6 @@ class NetworkTestTestCase(unittest.TestCase):
             "kubekarma.worker.nwtestsuite.NetworkTestSuite._run_test"
         ) as _run_test_mock:
             test_suite = NetworkTestSuite(test_config["spec"])
-            results = test_suite.run()
+            test_suite.run()
             test_suite._parse_test_case(test_config["spec"]["testCases"][3])
         self.assertEqual(_run_test_mock.call_count, 4)
