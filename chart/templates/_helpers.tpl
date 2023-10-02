@@ -10,9 +10,6 @@ name must match the spec fields below, and be in the form: <plural>.<group>
 {{- end }}
 
 
-{{- define "svc.headless-service-name" }}
-{{- .Release.Name }}-headless-service
-{{- end}}
-
-{{- define "svc.headless-service-url" }}http://{{- include "svc.headless-service-name" . }}.{{ .Release.Namespace }}.svc.cluster.local:8000
+{{- define "svc.headless-grpc-service-name" }}
+{{- .Release.Name }}-grpc-headless-service
 {{- end}}

@@ -13,5 +13,7 @@ jobs:
         python-version: '3.x'
     - name: Install tox and any other packages
       run: pip install tox
+    - name: Run import linter
+      run: tox -e lint-imports
     - name: Run tests
       run: tox -e worker
