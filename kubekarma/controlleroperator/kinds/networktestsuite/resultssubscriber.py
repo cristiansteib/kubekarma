@@ -21,7 +21,7 @@ class _TestSuiteStatusTracker:
 
     def calculate_current_test_suite_status(
         self,
-        current_status_reported: TestCaseStatus,
+        current_status_reported: CRDTestExecutionStatus,
         execution_time: datetime,
         test_cases: list
     ) -> TestSuiteStatusType:
@@ -56,11 +56,13 @@ class _TestSuiteStatusTracker:
 
     def get_last_succeeded_time(
             self,
-            current_status: TestCaseStatus,
+            current_status: CRDTestExecutionStatus,
             current_execution_time: str
     ) -> str:
         """Return the last succeeded time."""
-        if TestCaseStatus.Succeeded is current_status:
+        logger.info("current_status: %s", current_status)
+        logger.info("latest status: %s", self.latest_status)
+        if CRDTestExecutionStatus.Succeeding is current_status:
             return current_execution_time
         if self.latest_status is None:
             return "-"
@@ -68,7 +70,7 @@ class _TestSuiteStatusTracker:
 
     def get_last_execution_error_time(
         self,
-        current_status: TestCaseStatus,
+        current_status: CRDTestExecutionStatus,
         current_execution_time: str
     ) -> str:
         """Return the last execution error time.
@@ -82,7 +84,7 @@ class _TestSuiteStatusTracker:
             - If an error happened before and the last execution was
                 also an error, return the last execution time.
         """
-        if TestCaseStatus.Error is current_status:
+        if CRDTestExecutionStatus.Failing is current_status:
             return current_execution_time
         if self.latest_status is None:
             return "-"

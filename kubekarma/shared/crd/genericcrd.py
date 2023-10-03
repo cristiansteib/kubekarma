@@ -13,7 +13,7 @@ class CRDTestPhase(enum.Enum):
 
 
 class CRDTestExecutionStatus(enum.Enum):
-    """The execution status of a Test CRD object."""
+    """Overall status of the test execution."""
     Pending = "Pending"
     Succeeding = "Succeeding"
     Failing = "Failing"
