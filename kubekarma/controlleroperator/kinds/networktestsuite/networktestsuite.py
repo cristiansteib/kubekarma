@@ -9,11 +9,12 @@ from kubernetes.client import (
 )
 import yaml
 
+from kubekarma.controlleroperator.kinds import KIND
 from kubekarma.controlleroperator.kinds.networktestsuite import API_PLURAL
-from kubekarma.controlleroperator.kinds.networktestsuite.testsubscriber import \
+from kubekarma.controlleroperator.kinds.networktestsuite.resultssubscriber import \
     ResultsSubscriber
-from kubekarma.controlleroperator.kinds.networktestsuite.cronjob import \
-    NetworkTestSuiteWorkerJob
+from kubekarma.controlleroperator.kinds.cronjob import \
+    CronJobHelper
 from kubekarma.controlleroperator.kinds.crdinstancemanager import (
     CRDInstanceManager,
     CtxCRDInstance
@@ -77,7 +78,7 @@ class NetworkTestSuiteHandler:
                 "phase": phase.value,
             }
         }
-        if phase in (CRDTestPhase.Created, CRDTestPhase.Pending, CRDTestPhase.Suspended): # noqa
+        if phase in (CRDTestPhase.Active, CRDTestPhase.Pending, CRDTestPhase.Suspended): # noqa
             # Generic CRD status
             patch["status"]["testExecutionStatus"] = CRDTestExecutionStatus.Pending.value # noqa
         self.__patch_crd(
@@ -85,10 +86,19 @@ class NetworkTestSuiteHandler:
             patch=patch
         )
 
+    @staticmethod
+    def assert_is_correct_kind(current_kind: str):
+        """Assert that the current kind is the expected one."""
+        if current_kind != KIND:
+            raise kopf.PermanentError(
+                f"Invalid kind: {current_kind}. Expected {KIND}"
+            )
+
     def handle_create(self, spec, body, **kwargs):
         """A handler to receive a NetworkTestSuite creation event."""
         # NOTE: kopf._cogs.clients.events.post_event has a hardcoded
         # values to post events with "kopf" as the source.
+        self.assert_is_correct_kind(body['kind'])
         kopf.info(
             body,
             reason='Creation received by controller',
@@ -122,13 +132,14 @@ class NetworkTestSuiteHandler:
             raise kopf.PermanentError(
                 f"Invalid spec: {yaml.dump(errors)}" # noqa
             )
-        self.set_crd_phase(ctx, CRDTestPhase.Created)
+        self.set_crd_phase(ctx, CRDTestPhase.Active)
 
-        cron_job = NetworkTestSuiteWorkerJob.generate_cronjob(
+        cron_job = CronJobHelper.generate_cronjob(
             crd_instance=ctx,
             schedule=spec['schedule'],
             task_execution_config=body['spec'],
-            config=config
+            config=config,
+            kind=KIND
         ).to_dict()
 
         # Adopt the cronjob to the parent object to be able to delete it
