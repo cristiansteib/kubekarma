@@ -82,7 +82,7 @@ http = urllib3.PoolManager(timeout=timeout)
 
 if __name__ == "__main__":
     logger.info("Starting worker...")
-    started_at_time = datetime.time().isoformat()
+    started_at_time = datetime.datetime.now().isoformat()
     task_config = ExecutionTaskConfig.from_envs()
     controller = ControllerCommunication(task_config.controller_grpc_address)
     results = perform_task_execution(task_config)
