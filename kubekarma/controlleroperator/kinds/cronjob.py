@@ -7,14 +7,15 @@ from kubekarma.controlleroperator.kinds.crdinstancemanager import (
 )
 
 
-class NetworkTestSuiteWorkerJob:
+class CronJobHelper:
 
     @staticmethod
     def generate_cronjob(
-            crd_instance: CtxCRDInstance,
-            schedule,
-            task_execution_config: dict,
-            config: Config
+        crd_instance: CtxCRDInstance,
+        schedule: str,
+        task_execution_config: dict,
+        config: Config,
+        kind: str
     ) -> V1CronJob:
         """Generate the job template to be used by the cronjob."""
         envs = [
@@ -33,7 +34,7 @@ class NetworkTestSuiteWorkerJob:
             ),
             V1EnvVar(
                 name='WORKER_TEST_SUITE_KIND',
-                value='NetworkTestSuite'
+                value=kind
             ),
         ]
         cron_job = V1CronJob()
@@ -52,7 +53,7 @@ class NetworkTestSuiteWorkerJob:
                             "failedJobsHistoryLimit": 2,
                             "containers": [
                                 {
-                                    "name": "kubekarma-networktestsuite-worker",
+                                    "name": "kubekarma-worker",
                                     "image": config.worker_image,
                                     "env": envs
                                 }

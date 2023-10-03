@@ -126,7 +126,7 @@ spec:
                   default: Pending
                   enum:
                     - Pending # The test suite has not started yet
-                    - Created
+                    - Active
                     - Failed
                     - Suspended
                 testExecutionStatus:

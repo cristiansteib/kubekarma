@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from kubekarma.controlleroperator.abc.resultspublisher import IResultsSubscriber
@@ -9,6 +10,9 @@ from kubekarma.controlleroperator.kinds.types import (
 from kubekarma.shared.crd.genericcrd import CRDTestExecutionStatus, TestCaseStatus
 from kubekarma.shared.pb2 import controller_pb2
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class _TestSuiteStatusTracker:
 
@@ -16,9 +20,10 @@ class _TestSuiteStatusTracker:
         self.latest_status: Optional[TestSuiteStatusType] = None
 
     def calculate_current_test_suite_status(
-            self,
-            current_status_reported: TestCaseStatus,
-            test_cases: list
+        self,
+        current_status_reported: CRDTestExecutionStatus,
+        execution_time: datetime,
+        test_cases: list
     ) -> TestSuiteStatusType:
         """Return the current status for the CRD instance.
 
@@ -27,24 +32,47 @@ class _TestSuiteStatusTracker:
 
         The intention of this is to keep a track over time of the status
         to determinate the times of important events.
+
+        All times are in RFC3339 format.
         """
-        # TODO: track last time status changed
-        return {
-            "lastExecutionTime": self.get_last_execution_time(),
-            "lastExecutionErrorTime": self.get_last_execution_error_time(),
-            "lastSucceededTime": self.get_last_succeeded_time(),
+        execution_time_iso = execution_time.isoformat()
+        data = {
+            "lastExecutionTime": execution_time_iso,
+            "lastExecutionErrorTime": self.get_last_execution_error_time(
+                current_status=current_status_reported,
+                current_execution_time=execution_time_iso
+            ),
+            "lastSucceededTime": self.get_last_succeeded_time(
+                current_status=current_status_reported,
+                current_execution_time=execution_time_iso
+            ),
             "testExecutionStatus": current_status_reported.value,
             "testCases": test_cases
         }
+        logger.info("data: %s", data)
+        # store the current status
+        self.latest_status = data
+        return data
 
-    def get_last_execution_time(self) -> str:
-        """Return the last execution time."""
-        return ""
+    def get_last_succeeded_time(
+            self,
+            current_status: CRDTestExecutionStatus,
+            current_execution_time: str
+    ) -> str:
+        """Return the last succeeded time."""
+        logger.info("current_status: %s", current_status)
+        logger.info("latest status: %s", self.latest_status)
+        if CRDTestExecutionStatus.Succeeding is current_status:
+            return current_execution_time
+        if self.latest_status is None:
+            return "-"
+        return self.latest_status["lastSucceededTime"]
 
-    def get_last_succeeded_time(self) -> str:
-        """"""
-
-    def get_last_execution_error_time(self) -> str:
+    def get_last_execution_error_time(
+        self,
+        current_status: CRDTestExecutionStatus,
+        current_execution_time: str
+    ) -> str:
         """Return the last execution error time.
 
         This method always returns the LAST execution error time.
@@ -56,7 +84,11 @@ class _TestSuiteStatusTracker:
             - If an error happened before and the last execution was
                 also an error, return the last execution time.
         """
-        return ""
+        if CRDTestExecutionStatus.Failing is current_status:
+            return current_execution_time
+        if self.latest_status is None:
+            return "-"
+        return self.latest_status["lastExecutionErrorTime"]
 
 
 class ResultsSubscriber(IResultsSubscriber):
@@ -64,21 +96,6 @@ class ResultsSubscriber(IResultsSubscriber):
     def __init__(self, crd_manager: CRDInstanceManager):
         self.crd_manager = crd_manager
         self.test_suite_status_tracker = _TestSuiteStatusTracker()
-
-    @staticmethod
-    def get_status(status: controller_pb2.TestStatus) -> TestCaseStatus:
-        """Return the test case status defined by the CRD."""
-        # This class could be agnostic of the specific kubekarma CRD
-        if status == controller_pb2.TestStatus.SUCCEEDED:
-            return TestCaseStatus.Succeeded
-        elif status == controller_pb2.TestStatus.FAILED:
-            return TestCaseStatus.Failed
-        elif status == controller_pb2.TestStatus.NOTIMPLEMENTED:
-            return TestCaseStatus.NotImplemented
-        elif status == controller_pb2.TestStatus.ERROR:
-            return TestCaseStatus.Error
-        else:
-            raise Exception(f"Unknown status: {status}")
 
     def receive_results(
         self,
@@ -95,7 +112,7 @@ class ResultsSubscriber(IResultsSubscriber):
         # The whole test execution status
         test_execution_status = CRDTestExecutionStatus.Succeeding
         for result in results.test_case_results:
-            test_status = self.get_status(result.status)
+            test_status = TestCaseStatus.from_pb2_test_status(result.status)
             test_case_status: TestCaseStatusType = {
                 # The unique name of the test case, we can consider this
                 # as the ID of the test case.
@@ -116,16 +133,21 @@ class ResultsSubscriber(IResultsSubscriber):
                 test_case_status["error"] = result.error_message
             test_cases.append(test_case_status)
 
-        calculated_status = (
+        # Create the status object to be applied to the CRD
+        status_payload = (
             self.test_suite_status_tracker
             .calculate_current_test_suite_status(
                 current_status_reported=test_execution_status,
-                test_cases=test_cases
+                test_cases=test_cases,
+                # get datetime from time()
+                execution_time=datetime.fromisoformat(
+                    results.started_at_time
+                )
             )
         )
         self.crd_manager.patch_crd(
             patch={
-                "status": calculated_status
+                "status": status_payload
             }
         )
 
