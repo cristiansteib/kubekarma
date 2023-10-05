@@ -67,8 +67,9 @@ class NetworkTestSuiteHandler:
 
     def handle_create(self, spec, body, **kwargs):
         """A handler to receive a NetworkTestSuite creation event."""
-        # NOTE: kopf._cogs.clients.events.post_event has a hardcoded
-        # values to post events with "kopf" as the source.
+        # I need to copy the context to avoid an error on the kopf framework
+        # related to the context management of the handlers, because
+        # it uses the contextvars to store the settings of each handler.
         context_copy: contextvars.Context = contextvars.copy_context()
         self.assert_is_correct_kind(body['kind'])
         kopf.info(

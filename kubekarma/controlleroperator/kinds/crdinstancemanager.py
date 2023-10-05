@@ -64,6 +64,8 @@ class CRDInstanceManager:
         })
 
     def info_event(self, reason: str, message: str):
+        # NOTE: kopf._cogs.clients.events.post_event has a hardcoded
+        # values to post events with "kopf" as the source.
         self._contextvars_copy.run(
             kopf.info,
             self.body_cache,
@@ -72,6 +74,8 @@ class CRDInstanceManager:
         )
 
     def error_event(self, reason: str, message: str):
+        # NOTE: kopf._cogs.clients.events.post_event has a hardcoded
+        # values to post events with "kopf" as the source.
         self._contextvars_copy.run(
             kopf.event,
             self.body_cache,
