@@ -1,3 +1,4 @@
+import contextvars
 import dataclasses
 
 import kopf
@@ -8,10 +9,13 @@ from kubernetes.client import ApiClient
 from kubekarma.controlleroperator import helpers
 from kubekarma.shared.crd.genericcrd import CRDTestExecutionStatus, \
     CRDTestPhase
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
-class CtxCRDInstance:
+class CRDInstance:
     """A class to keep a track of some CRD Test Suite created."""
     namespace: str
     metadata_name: str
@@ -25,11 +29,28 @@ class CRDInstanceManager:
     def __init__(
         self,
         api_client: ApiClient,
-        ctx: CtxCRDInstance,
-        body: bodies.Body
+        crd_data: CRDInstance,
+        body: bodies.Body,
+        contextvars_copy: contextvars.Context
     ):
+        """Initialize the CRDInstanceManager.
+
+        Intention: Provide a single way to manipulate the CRD instance status,
+            or trigger events.
+
+        Args:
+            api_client (ApiClient): The api client to use to interact with
+                the kubernetes API.
+            crd_data (CRDInstance): The data of the CRD instance.
+            body (bodies.Body): The body of the CRD instance.
+            contextvars_copy (contextvars.Context): Used for a
+                Manual Context Management.
+                This Context is required due to how kopf works, it relies on
+                the ContextVar to manage independent settings for each handler.
+        """
         self.api_client = api_client
-        self.ctx = ctx
+        self.crd_data = crd_data
+        self._contextvars_copy = contextvars_copy
         # cache the data required by:
         #   kopf._cogs.structs.bodies.build_object_reference
         self.body_cache = bodies.Body({
@@ -43,17 +64,20 @@ class CRDInstanceManager:
         })
 
     def info_event(self, reason: str, message: str):
-        kopf.info(
+        self._contextvars_copy.run(
+            kopf.info,
             self.body_cache,
             reason=reason,
             message=message,
         )
 
     def error_event(self, reason: str, message: str):
-        kopf.exception(
+        self._contextvars_copy.run(
+            kopf.event,
             self.body_cache,
             reason=reason,
             message=message,
+            type="Error"
         )
 
     def patch_crd(self, patch: dict):
@@ -63,9 +87,9 @@ class CRDInstanceManager:
         ).patch_namespaced_custom_object(
             group="kubekarma.io",
             version="v1",
-            namespace=self.ctx.namespace,
-            plural=self.ctx.plural,
-            name=self.ctx.metadata_name,
+            namespace=self.crd_data.namespace,
+            plural=self.crd_data.plural,
+            name=self.crd_data.metadata_name,
             body=patch
         )
 

@@ -52,10 +52,17 @@ spec:
                             type: integer
                           expectSuccess:
                             type: boolean
+                          protocol:
+                            type: string
+                            enum:
+                              - TCP
+                              - UDP
+                            default: TCP
                         required:
                           - destinationIP
                           - port
                           - expectSuccess
+                          - protocol
                       testIpBlock:
                         type: object
                         properties:
