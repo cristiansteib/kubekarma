@@ -76,10 +76,6 @@ def read_yaml(stream: str) -> dict:
     return yaml.safe_load(stream)
 
 
-timeout = urllib3.Timeout(connect=2.0, read=5.0)
-http = urllib3.PoolManager(timeout=timeout)
-
-
 if __name__ == "__main__":
     logger.info("Starting worker...")
     started_at_time = datetime.datetime.now().isoformat()

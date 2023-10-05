@@ -10,10 +10,10 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
+        python-version: '3.11'
     - name: Install tox and any other packages
       run: pip install tox
     - name: Run import linter
       run: tox -e lint-imports
-    - name: Run tests
-      run: tox -e worker
+    - name: Run test worker
+      run: tox -e test-worker

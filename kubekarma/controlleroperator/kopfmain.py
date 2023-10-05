@@ -1,5 +1,6 @@
 import dataclasses
 from datetime import datetime
+from typing import Any
 
 import kopf
 import logging
@@ -75,7 +76,7 @@ def stop_results_receiver(**kwargs):
 
 
 @kopf.on.probe(id='now')
-def get_current_timestamp(**kwargs):
+def get_current_timestamp(**kwargs: Any) -> str:
     return datetime.utcnow().isoformat()
 
 
