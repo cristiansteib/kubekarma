@@ -21,14 +21,18 @@ deploy:
       before:
         - host:
             command: ["kubectl", "apply", "-f", "dev/namespace.yaml"]
+
         # Clean the environment before performing the deployment
         - host:
             command: [ "kubectl", "delete", "-f", "chart/crds/NetworkTestSuite.yaml", "--ignore-not-found=true" ]
         - host:
-            command: [ "kubectl", "delete", "-f", "examples/NetworkTestSuite/test_with_all_asserts.yaml", "--ignore-not-found=true", "--namespace=another-namespace" ]
-
+            command: [ "sleep", "1" ]
         - host:
             command: ["kubectl", "apply", "-f", "chart/crds/NetworkTestSuite.yaml"]
+        - host:
+            command: [ "kubectl", "delete", "-f", "examples/NetworkTestSuite/test_with_all_asserts.yaml", "--ignore-not-found=true", "--namespace=another-namespace" ]
+
+
         # create a few Kopf-specific custom resources in the cluster
         # kubectl apply -f https://github.com/nolar/kopf/raw/main/peering.yaml
 #        - host:
