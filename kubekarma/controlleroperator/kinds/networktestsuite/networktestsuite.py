@@ -1,3 +1,4 @@
+import contextvars
 import uuid
 from typing import Optional
 
@@ -17,10 +18,9 @@ from kubekarma.controlleroperator.kinds.cronjob import \
     CronJobHelper
 from kubekarma.controlleroperator.kinds.crdinstancemanager import (
     CRDInstanceManager,
-    CtxCRDInstance
+    CRDInstance
 )
-from kubekarma.shared.crd.genericcrd import CRDTestExecutionStatus, \
-    CRDTestPhase
+from kubekarma.shared.crd.genericcrd import CRDTestPhase
 from kubekarma.shared.crd.networktestsuite import (
     NetworkTestSuiteCRD
 )
@@ -49,7 +49,6 @@ class NetworkTestSuiteHandler:
     def __init__(self, publisher: IResultsPublisher):
         self.__api_client: Optional[client.ApiClient] = None
         self.publisher = publisher
-        logger.info("publisher: %s", id(publisher))
 
     @property
     def _api_client(self) -> ApiClient:
@@ -57,34 +56,6 @@ class NetworkTestSuiteHandler:
         if not self.__api_client:
             self.__api_client = client.ApiClient()
         return self.__api_client
-
-    def __patch_crd(self, ctx: CtxCRDInstance, patch: dict):
-        """Patch the CRD with the given patch."""
-        client.CustomObjectsApi(
-            api_client=self._api_client
-        ).patch_namespaced_custom_object(
-            group="kubekarma.io",
-            version="v1",
-            namespace=ctx.namespace,
-            plural=API_PLURAL,
-            name=ctx.metadata_name,
-            body=patch
-        )
-
-    def set_crd_phase(self, ctx: CtxCRDInstance, phase: CRDTestPhase):
-        """Set the phase of the CRD."""
-        patch = {
-            "status": {
-                "phase": phase.value,
-            }
-        }
-        if phase in (CRDTestPhase.Active, CRDTestPhase.Pending, CRDTestPhase.Suspended): # noqa
-            # Generic CRD status
-            patch["status"]["testExecutionStatus"] = CRDTestExecutionStatus.Pending.value # noqa
-        self.__patch_crd(
-            ctx=ctx,
-            patch=patch
-        )
 
     @staticmethod
     def assert_is_correct_kind(current_kind: str):
@@ -96,17 +67,19 @@ class NetworkTestSuiteHandler:
 
     def handle_create(self, spec, body, **kwargs):
         """A handler to receive a NetworkTestSuite creation event."""
-        # NOTE: kopf._cogs.clients.events.post_event has a hardcoded
-        # values to post events with "kopf" as the source.
+        # I need to copy the context to avoid an error on the kopf framework
+        # related to the context management of the handlers, because
+        # it uses the contextvars to store the settings of each handler.
+        context_copy: contextvars.Context = contextvars.copy_context()
         self.assert_is_correct_kind(body['kind'])
         kopf.info(
             body,
-            reason='Creation received by controller',
+            reason='CreationReceived',
             message=f'Handling {body["kind"]}  <{spec["name"]}>'
         )
 
         worker_task_id = uuid.uuid4().hex
-        ctx = CtxCRDInstance(
+        crd_data = CRDInstance(
             namespace=body['metadata']['namespace'],
             metadata_name=body['metadata']['name'],
             cron_job_name=body['metadata']['name'] + "-npts-" + worker_task_id[:4], # noqa
@@ -116,26 +89,22 @@ class NetworkTestSuiteHandler:
 
         crd_manager = CRDInstanceManager(
             api_client=self._api_client,
-            ctx=ctx
+            crd_data=crd_data,
+            body=body,
+            contextvars_copy=context_copy
         )
 
-        logger.debug(
-            "Validating CRD [%s:%s]",
-            ctx.namespace,
-            ctx.metadata_name
-        )
         errors = NetworkTestSuiteCRD().validate_spec(
             spec=spec
         )
         if errors:
-            self.set_crd_phase(ctx, CRDTestPhase.Failed)
+            crd_manager.set_crd_phase(CRDTestPhase.Failed)
             raise kopf.PermanentError(
                 f"Invalid spec: {yaml.dump(errors)}" # noqa
             )
-        self.set_crd_phase(ctx, CRDTestPhase.Active)
-
+        crd_manager.set_crd_phase(CRDTestPhase.Active)
         cron_job = CronJobHelper.generate_cronjob(
-            crd_instance=ctx,
+            crd_instance=crd_data,
             schedule=spec['schedule'],
             task_execution_config=body['spec'],
             config=config,
@@ -150,25 +119,23 @@ class NetworkTestSuiteHandler:
         BatchV1Api(
             api_client=self._api_client
         ).create_namespaced_cron_job(
-            namespace=ctx.namespace,
+            namespace=crd_data.namespace,
             body=cron_job
         )
 
         # Listen for the results of the execution task that run in a pod
         # controlled by a CronJob running on a specific namespace.
         self.publisher.add_results_listener(
-            execution_id=ctx.worker_task_id,
+            execution_id=crd_data.worker_task_id,
             subscriber=ResultsSubscriber(crd_manager)
         )
 
         # Trigger an event for the CRD related to the creation of the cronjob
-        kopf.info(
-            body,
+        crd_manager.info_event(
             reason='Running',
-            message=f'CronJob created successfully <{ctx.cron_job_name}>'
+            message=f'CronJob created successfully <{crd_data.cron_job_name}>'
         )
-
         # Patch the created CRD with annotation pointing to the created cronjob
         # and the code version used by this handler.
         # This will allow for future version perform the required changes.
-        crd_manager.patch_with_cronjob_notation(ctx)
+        crd_manager.patch_with_cronjob_notation(crd_data)

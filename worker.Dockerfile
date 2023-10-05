@@ -1,4 +1,4 @@
-FROM python:3.10-buster as builder
+FROM python:3.11-buster as builder
 # Always set a working directory
 WORKDIR /usr/src/app
 
@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip wheel --no-deps --wheel-dir /usr/src/app/wheels \
     -r requirements.worker.txt
 
-FROM python:3.10-slim AS app
+FROM python:3.11-slim AS app
 LABEL org.opencontainers.image.authors="Cristian Steib"
 COPY --from=builder  /usr/src/app/wheels /wheels
 RUN pip install  --no-cache  /wheels/* && rm -rf /wheels

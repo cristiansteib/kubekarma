@@ -6,9 +6,11 @@ import logging
 
 from kubekarma.worker import utils
 from kubekarma.worker.abs.exception import AssertionFailure, InvalidDefinition
-from kubekarma.worker.networksuite.dnsresolution import DNSResolutionAssertion
+from kubekarma.worker.networksuite.dnsresolutionassertion import DNSResolutionAssertion
 from kubekarma.shared.pb2.controller_pb2 import TestCaseResult
 from kubekarma.shared.pb2 import controller_pb2
+from kubekarma.worker.networksuite.exactdestionationassertion import \
+    ExactDestinationAssertion
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +28,7 @@ class NetworkTestSuite:
     DEFINED_ASSERTIONS = {
         "testDNSResolution": DNSResolutionAssertion,
         "testIpBlock": None,
-        "testExactDestination": None,
+        "testExactDestination": ExactDestinationAssertion,
     }
 
     def __init__(self, config_spec: dict):
@@ -94,10 +96,11 @@ class NetworkTestSuite:
         assertion.test()
 
     def run(self) -> List[TestCaseResult]:
-        test_suite_name = self.config_spec["name"]
-        logger.info(f"Running test suite {test_suite_name}")
+        logger.info(
+            "[%s] Running test suite",
+            self.config_spec["name"]
+        )
         results = []
-
         for test in self.config_spec["testCases"]:
             start_time = time.perf_counter()
             # Create a partial result item, the rest of the values
@@ -111,15 +114,15 @@ class NetworkTestSuite:
             try:
                 self._run_test(test)
                 test_result.status = controller_pb2.TestStatus.SUCCEEDED
+                logger.info("[%s] ... PASSED", test['name'])
             except AssertionFailure:
-                logger.error(f"Test case {test['name']} failed")
+                logger.info("[%s] ... FAILED", test['name'])
             except NotImplementedError:
                 test_result.status = controller_pb2.TestStatus.NOTIMPLEMENTED
+                logger.info("[%s] ... SKIPPED", test['name'])
             except Exception as e:
                 logger.exception(
-                    "Test case %s failed with unexpected error %s",
-                    test['name'],
-                    e
+                    "[%s] ... ERROR", test['name']
                 )
                 test_result.status = controller_pb2.TestStatus.ERROR
                 test_result.error_message = utils.stringify_exception(e)

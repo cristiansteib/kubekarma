@@ -3,7 +3,7 @@ from kubernetes.client import V1CronJob, V1EnvVar, V1ObjectMeta
 
 from kubekarma.controlleroperator.config import Config
 from kubekarma.controlleroperator.kinds.crdinstancemanager import (
-    CtxCRDInstance
+    CRDInstance
 )
 
 
@@ -11,7 +11,7 @@ class CronJobHelper:
 
     @staticmethod
     def generate_cronjob(
-        crd_instance: CtxCRDInstance,
+        crd_instance: CRDInstance,
         schedule: str,
         task_execution_config: dict,
         config: Config,
