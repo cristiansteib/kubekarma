@@ -115,14 +115,17 @@ class NetworkTestSuiteHandler:
         # in cascade.
         kopf.adopt(cron_job, owner=body)
 
-        # Effectively create the cronjob in the cluster
-        BatchV1Api(
-            api_client=self._api_client
-        ).create_namespaced_cron_job(
-            namespace=crd_data.namespace,
-            body=cron_job
-        )
-
+        try:
+            # Effectively create the cronjob in the cluster
+            BatchV1Api(
+                api_client=self._api_client
+            ).create_namespaced_cron_job(
+                namespace=crd_data.namespace,
+                body=cron_job
+            )
+        except client.exceptions.ApiException as e:
+            logger.info(yaml.dump(e.body))
+            raise e
         # Listen for the results of the execution task that run in a pod
         # controlled by a CronJob running on a specific namespace.
         self.publisher.add_results_listener(

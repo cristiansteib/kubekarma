@@ -18,6 +18,12 @@ class CronJobHelper:
         kind: str
     ) -> V1CronJob:
         """Generate the job template to be used by the cronjob."""
+
+        cron_job = V1CronJob()
+        cron_job.metadata = V1ObjectMeta(
+            name=crd_instance.cron_job_name,
+            namespace=crd_instance.namespace,
+        )
         envs = [
             V1EnvVar(
                 name='WORKER_TASK_ID',
@@ -37,20 +43,20 @@ class CronJobHelper:
                 value=kind
             ),
         ]
-        cron_job = V1CronJob()
-        cron_job.metadata = V1ObjectMeta(
-            name=crd_instance.cron_job_name,
-            namespace=crd_instance.namespace,
-        )
 
         cron_job.spec = {
             "schedule": schedule,
+            "concurrencyPolicy": "Forbid",
+            "successfulJobsHistoryLimit": 2,
+            "failedJobsHistoryLimit": 4,
+
             "jobTemplate": {
                 "spec": {
+                    "backoffLimit": 0,
+                    "ttlSecondsAfterFinished": 60 * 60 * 5,
                     "template": {
                         "spec": {
-                            "successfulJobsHistoryLimit": 2,
-                            "failedJobsHistoryLimit": 2,
+                            "restartPolicy": "Never",
                             "containers": [
                                 {
                                     "name": "kubekarma-worker",
@@ -58,7 +64,6 @@ class CronJobHelper:
                                     "env": envs
                                 }
                             ],
-                            "restartPolicy": "Never"
                         }
                     }
                 }

@@ -21,7 +21,6 @@ deploy:
       before:
         - host:
             command: ["kubectl", "apply", "-f", "dev/namespace.yaml"]
-
         # Clean the environment before performing the deployment
         - host:
             command: [ "kubectl", "delete", "-f", "chart/crds/NetworkTestSuite.yaml", "--ignore-not-found=true" ]
@@ -30,8 +29,15 @@ deploy:
         - host:
             command: ["kubectl", "apply", "-f", "chart/crds/NetworkTestSuite.yaml"]
         - host:
-            command: [ "kubectl", "delete", "-f", "examples/NetworkTestSuite/test_with_all_asserts.yaml", "--ignore-not-found=true", "--namespace=another-namespace" ]
-
+            command: [ "kubectl", "delete", "networktestsuite/an-example-of-all-asserts", "--ignore-not-found=true", "--namespace=another-namespace" ]
+        - host:
+            command: [ "kubectl", "wait", "--for=delete", "networktestsuite/an-example-of-all-asserts", "--namespace=another-namespace" ]
+      after:
+        # Wait until the operator finishes the rollout
+        - host:
+            command: ["kubectl", "rollout", "status", "deployment/kubekarmar-operator",]
+        - host:
+            command: [ "kubectl", "apply", "-f", "examples/NetworkTestSuite/test_with_all_asserts.yaml", "--namespace=another-namespace" ]
 
         # create a few Kopf-specific custom resources in the cluster
         # kubectl apply -f https://github.com/nolar/kopf/raw/main/peering.yaml
