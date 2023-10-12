@@ -39,4 +39,3 @@ class CronJobHelperTest(unittest.TestCase):
         )
         self.assertIsInstance(cron, V1CronJob)
         self.assertIsInstance(cron.to_dict(), dict)
-
