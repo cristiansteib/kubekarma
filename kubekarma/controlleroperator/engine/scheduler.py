@@ -54,4 +54,3 @@ class SchedulerThread(threading.Thread):
 
     def empty(self):
         return self.scheduler.empty()
-

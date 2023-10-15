@@ -10,6 +10,8 @@ from kubernetes.client import (
 )
 import yaml
 
+from kubekarma.controlleroperator.engine.controllerengine import \
+    ControllerEngine
 from kubekarma.controlleroperator.kinds import KIND
 from kubekarma.controlleroperator.kinds.networktestsuite import API_PLURAL
 from kubekarma.controlleroperator.kinds.networktestsuite.resultssubscriber import \
@@ -46,7 +48,12 @@ class NetworkTestSuiteHandler:
     # Note that this value is used in an annotation, so it must be compatible
     # with the annotation key format.
 
-    def __init__(self, publisher: IResultsPublisher):
+    def __init__(
+            self,
+            publisher: IResultsPublisher,
+            controller_engine: ControllerEngine
+    ):
+        self.controller_engine = controller_engine
         self.__api_client: Optional[client.ApiClient] = None
         self.publisher = publisher
 
@@ -130,7 +137,11 @@ class NetworkTestSuiteHandler:
         # controlled by a CronJob running on a specific namespace.
         self.publisher.add_results_listener(
             execution_id=crd_data.worker_task_id,
-            subscriber=ResultsSubscriber(crd_manager)
+            subscriber=ResultsSubscriber(
+                schedule=spec['schedule'],
+                crd_manager=crd_manager,
+                controller_engine=self.controller_engine
+            )
         )
 
         # Trigger an event for the CRD related to the creation of the cronjob

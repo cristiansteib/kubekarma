@@ -16,7 +16,7 @@ class ControllerEngineTest(unittest.TestCase):
         t = controller_engine.start()
 
         controller_engine.scheduler.enterabs(
-            time()+25,
+            time() + 25,
             1,
             hello
         )
@@ -25,4 +25,3 @@ class ControllerEngineTest(unittest.TestCase):
         t.join()
         sleep(2)
         print("goodbye")
-

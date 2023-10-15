@@ -5,6 +5,8 @@ from typing import Any
 import kopf
 import logging
 
+from kubekarma.controlleroperator.engine.controllerengine import \
+    ControllerEngine
 from kubekarma.controlleroperator.kinds.networktestsuite import API_PLURAL
 from kubekarma.controlleroperator.config import config
 from kubekarma.controlleroperator.grpcsrv.server import build_grpc_server
@@ -19,14 +21,14 @@ from kubernetes import client
 logger = logging.getLogger(__name__)
 api_client = client.ApiClient()
 
-publisher = get_results_publisher()
-
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.DEBUG)
 
+controller_engine = ControllerEngine()
 
 crd_network_policy_tes_suite_handler = NetworkTestSuiteHandler(
-    publisher=publisher
+    publisher=get_results_publisher(),
+    controller_engine=controller_engine
 )
 
 
@@ -60,7 +62,9 @@ def configure(settings: kopf.OperatorSettings, **_):
 def start_http_server(**kwargs):
     global grpc_server
     global http_server_thread
+    global controller_engine
     http_server_thread.start()
+    controller_engine.start()
     logger.info("Starting gRPC server...")
     grpc_server.start()
 

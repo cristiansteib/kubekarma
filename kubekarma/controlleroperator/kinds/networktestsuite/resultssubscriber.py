@@ -2,7 +2,11 @@ from datetime import datetime
 from typing import List
 
 from kubekarma.controlleroperator.abc.resultspublisher import IResultsSubscriber
+from kubekarma.controlleroperator.engine.controllerengine import \
+    ControllerEngine
 from kubekarma.controlleroperator.kinds.crdinstancemanager import CRDInstanceManager
+from kubekarma.controlleroperator.kinds.networktestsuite.resultschecker import \
+    ResultsDeadlineValidator
 from kubekarma.controlleroperator.kinds.statustracker import \
     TestSuiteStatusTracker
 from kubekarma.controlleroperator.kinds.types import TestCaseStatusType
@@ -11,13 +15,34 @@ from kubekarma.shared.pb2 import controller_pb2
 
 import logging
 logger = logging.getLogger(__name__)
+# add a prefix for this logger
 
 
 class ResultsSubscriber(IResultsSubscriber):
 
-    def __init__(self, crd_manager: CRDInstanceManager):
+    def __init__(
+        self,
+        schedule: str,
+        crd_manager: CRDInstanceManager,
+        controller_engine: ControllerEngine
+    ):
+        """Initialize the subscriber.
+
+        Args:
+            schedule: The schedule of the test suite, in crontab format.
+            crd_manager: The manager of the CRD instance.
+            controller_engine: The controller engine.
+        """
         self.crd_manager = crd_manager
         self.test_suite_status_tracker = TestSuiteStatusTracker()
+        self.controller_engine = controller_engine
+        self.schedule = schedule
+        # The last time the results were received
+        self.results_checker = ResultsDeadlineValidator(
+            schedule=schedule,
+            cron_job_name=crd_manager.crd_data.cron_job_name,
+            controller_engine=controller_engine
+        )
 
     def receive_results(
         self,
@@ -29,6 +54,11 @@ class ResultsSubscriber(IResultsSubscriber):
         execution task are available. The results should be interpreted
         and used to set  the status of the CRD.
         """
+        self.results_checker.mark_results_received(
+            datetime.fromisoformat(
+                results.started_at_time
+            )
+        )
         # prepare the patch to be applied to the CRD to report the results
         test_cases: List[TestCaseStatusType] = []
         # The whole test execution status
