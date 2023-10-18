@@ -3,7 +3,7 @@ import unittest
 from kubernetes.client import V1CronJob
 
 from kubekarma.controlleroperator.config import Config
-from kubekarma.controlleroperator.kinds.crdinstancemanager import CRDInstance
+from kubekarma.controlleroperator.kinds.crdinstancemanager import CRD
 from kubekarma.controlleroperator.kinds.cronjob import CronJobHelper
 
 
@@ -11,7 +11,7 @@ class CronJobHelperTest(unittest.TestCase):
 
     def test_create_cronjob(self):
         cron = CronJobHelper.generate_cronjob(
-            crd_instance=CRDInstance(
+            crd_instance=CRD(
                 namespace="default",
                 plural="NetworkTestSuite",
                 metadata_name="test-suite-1",

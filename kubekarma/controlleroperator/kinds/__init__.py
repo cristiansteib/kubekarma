@@ -1,1 +1,1 @@
-KIND = "NetworkTestSuite"
+

@@ -41,7 +41,8 @@ class SchedulerThread(threading.Thread):
 
         if not self.scheduler.empty():
             logger.info(
-                "I'm dying and scheduler is not empty, pending events (%s)",
+                "I'm dying and scheduler is not empty,"
+                " pending events (%s)",
                 len(self.scheduler.queue)
             )
 

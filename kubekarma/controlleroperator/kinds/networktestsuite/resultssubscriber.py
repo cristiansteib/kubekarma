@@ -1,21 +1,28 @@
 from datetime import datetime
 from typing import List
 
-from kubekarma.controlleroperator.abc.resultspublisher import IResultsSubscriber
-from kubekarma.controlleroperator.engine.controllerengine import \
+from kubekarma.controlleroperator.abc.resultspublisher import (
+    IResultsSubscriber
+)
+from kubekarma.controlleroperator.engine.controllerengine import (
     ControllerEngine
-from kubekarma.controlleroperator.kinds.crdinstancemanager import CRDInstanceManager
-from kubekarma.controlleroperator.kinds.networktestsuite.resultschecker import \
+)
+from kubekarma.controlleroperator.kinds.crdinstancemanager import (
+    CRDInstanceManager
+)
+from kubekarma.controlleroperator.kinds.networktestsuite.resultsdeadline import \
     ResultsDeadlineValidator
 from kubekarma.controlleroperator.kinds.statustracker import \
     TestSuiteStatusTracker
 from kubekarma.controlleroperator.kinds.types import TestCaseStatusType
-from kubekarma.shared.crd.genericcrd import CRDTestExecutionStatus, TestCaseStatus
+from kubekarma.shared.crd.genericcrd import (
+    CRDTestExecutionStatus,
+    TestCaseStatus
+)
 from kubekarma.shared.pb2 import controller_pb2
 
 import logging
 logger = logging.getLogger(__name__)
-# add a prefix for this logger
 
 
 class ResultsSubscriber(IResultsSubscriber):
@@ -44,7 +51,7 @@ class ResultsSubscriber(IResultsSubscriber):
             controller_engine=controller_engine
         )
 
-    def receive_results(
+    def update(
         self,
         results: controller_pb2.ProcessTestSuiteResultsRequest
     ):
@@ -111,5 +118,3 @@ class ResultsSubscriber(IResultsSubscriber):
             }
         )
 
-    def __hash__(self):
-        return hash(id(self))

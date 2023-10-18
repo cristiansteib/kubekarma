@@ -12,22 +12,22 @@ import yaml
 
 from kubekarma.controlleroperator.engine.controllerengine import \
     ControllerEngine
-from kubekarma.controlleroperator.kinds import KIND
-from kubekarma.controlleroperator.kinds.networktestsuite import API_PLURAL
+from kubekarma.controlleroperator.kinds.networktestsuite import API_PLURAL, \
+    KIND
 from kubekarma.controlleroperator.kinds.networktestsuite.resultssubscriber import \
     ResultsSubscriber
 from kubekarma.controlleroperator.kinds.cronjob import \
     CronJobHelper
 from kubekarma.controlleroperator.kinds.crdinstancemanager import (
     CRDInstanceManager,
-    CRDInstance
+    CRD
 )
 from kubekarma.shared.crd.genericcrd import CRDTestPhase
 from kubekarma.shared.crd.networktestsuite import (
     NetworkTestSuiteCRD
 )
 from kubekarma.controlleroperator.abc.resultspublisher import (
-    IResultsPublisher
+    ITestResultsPublisher
 )
 from kubekarma.controlleroperator.config import config
 
@@ -50,7 +50,7 @@ class NetworkTestSuiteHandler:
 
     def __init__(
             self,
-            publisher: IResultsPublisher,
+            publisher: ITestResultsPublisher,
             controller_engine: ControllerEngine
     ):
         self.controller_engine = controller_engine
@@ -86,7 +86,7 @@ class NetworkTestSuiteHandler:
         )
 
         worker_task_id = uuid.uuid4().hex
-        crd_data = CRDInstance(
+        crd_data = CRD(
             namespace=body['metadata']['namespace'],
             metadata_name=body['metadata']['name'],
             cron_job_name=body['metadata']['name'] + "-npts-" + worker_task_id[:4], # noqa

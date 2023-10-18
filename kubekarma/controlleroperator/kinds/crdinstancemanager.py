@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
-class CRDInstance:
+class CRD:
     """A class to keep a track of some CRD Test Suite created."""
     namespace: str
     metadata_name: str
@@ -29,7 +29,7 @@ class CRDInstanceManager:
     def __init__(
         self,
         api_client: ApiClient,
-        crd_data: CRDInstance,
+        crd_data: CRD,
         body: bodies.Body,
         contextvars_copy: contextvars.Context
     ):
@@ -41,7 +41,7 @@ class CRDInstanceManager:
         Args:
             api_client (ApiClient): The api client to use to interact with
                 the kubernetes API.
-            crd_data (CRDInstance): The data of the CRD instance.
+            crd_data (CRD): The data of the CRD instance.
             body (bodies.Body): The body of the CRD instance.
             contextvars_copy (contextvars.Context): Used for a
                 Manual Context Management.
@@ -122,25 +122,7 @@ class CRDInstanceManager:
             )
         self.patch_crd(patch=patch)
 
-    def patch_with_handler_code_version_notation(self, handler_code_version):
-        """Patch the CRD with the given patch."""
-        annotations = {}
-        annotations.update(
-            helpers.generate_custom_annotation(
-                "npts-handler-version",
-                handler_code_version
-            ).to_kv()
-        )
-
-        self.patch_crd(
-            patch={
-                "metadata": {
-                    "annotations": annotations
-                }
-            }
-        )
-
-    def patch_with_cronjob_notation(self, ctx):
+    def patch_with_cronjob_notation(self, ctx: CRD):
         annotations = {}
         annotations.update(
             helpers.generate_custom_annotation(

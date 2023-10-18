@@ -1,6 +1,9 @@
 from copy import deepcopy
 from typing import Dict, List
 
+from kubekarma.controlleroperator.kinds.crdinstancemanager import \
+    CRDInstanceManager
+
 
 class InvalidDefinition(Exception):
     ...
@@ -10,7 +13,7 @@ class UndefinedCentinel:
     ...
 
 
-class NetworkTestSuiteCRD:
+class NetworkTestSuiteCRD(CRDInstanceManager):
     DEFINED_ASSERTIONS = [
         "testDNSResolution",
         "testIpBlock",

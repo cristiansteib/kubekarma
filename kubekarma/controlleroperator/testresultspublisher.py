@@ -1,7 +1,7 @@
 from typing import Dict, Set
 
 from kubekarma.controlleroperator.abc.resultspublisher import (
-    IResultsPublisher,
+    ITestResultsPublisher,
     IResultsSubscriber
 )
 
@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ResultsPublisher(IResultsPublisher):
+class TestResultsPublisher(ITestResultsPublisher):
 
     def __init__(self):
         self.subscribers: Dict[str, Set[IResultsSubscriber]] = {}
@@ -37,4 +37,4 @@ class ResultsPublisher(IResultsPublisher):
 
     def notify_new_results(self, execution_id: str, results):
         for subscriber in self.subscribers.get(execution_id, []):
-            subscriber.receive_results(results)
+            subscriber.update(results)

@@ -8,19 +8,24 @@ class IResultsSubscriber(Generic[T], ABC):
     """A generic interface.
 
      The intention of this interface is to receive the results from the
-      IResultsPublisher.
+      ITestResultsPublisher.
 
     """
 
     @abstractmethod
-    def receive_results(self, results: T):
+    def update(self, results: T):
         """Receive the results of some the execution task."""
 
     def __hash__(self):
         return hash(id(self))
 
 
-class IResultsPublisher(ABC):
+class ITestResultsPublisher(ABC):
+    """An interface to publish the results of the execution task.
+
+    The intention of this interface is to publish the results of the execution
+    task to all the subscribers.
+    """
 
     @abstractmethod
     def add_results_listener(
