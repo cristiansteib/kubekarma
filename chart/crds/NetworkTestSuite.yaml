@@ -180,6 +180,9 @@ spec:
                 lastSucceededTime:
                   type: string
                   description: The last time the test case was executed successfully
+                passingCount:
+                  type: string
+                  description: The number of test cases that passed (Succeeded/Total)
               required:
                 - phase
                 - testCases
@@ -193,6 +196,10 @@ spec:
         type: string
         description: The phase of the CRD
         jsonPath: .status.phase
+      - name: Passing
+        type: string
+        description: The number of test cases passed/total
+        jsonPath: .status.passingCount
       - name: Status
         type: string
         description: The status of the whole test suite

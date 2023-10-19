@@ -11,12 +11,12 @@ from kubekarma.controlleroperator.kinds.networktestsuite import API_PLURAL
 from kubekarma.controlleroperator.config import config
 from kubekarma.controlleroperator.grpcsrv.server import build_grpc_server
 from kubekarma.controlleroperator import get_results_publisher
-from kubekarma.controlleroperator.kinds.networktestsuite.networktestsuite import (
-    NetworkTestSuiteHandler
-)
+
 from kubekarma.controlleroperator.httpserver import get_threaded_server
 from kubernetes import client
 
+from kubekarma.controlleroperator.kinds.networktestsuite.nwng import \
+    NetworkTestSuite
 
 logger = logging.getLogger(__name__)
 api_client = client.ApiClient()
@@ -26,7 +26,7 @@ root_logger.setLevel(logging.DEBUG)
 
 controller_engine = ControllerEngine()
 
-crd_network_policy_tes_suite_handler = NetworkTestSuiteHandler(
+crd_network_policy_tes_suite_handler = NetworkTestSuite(
     publisher=get_results_publisher(),
     controller_engine=controller_engine
 )

@@ -97,7 +97,23 @@ class CRDInstanceManager:
             body=patch
         )
 
-    def set_crd_phase(self, phase: CRDTestPhase):
+    def set_phase_to_active(self):
+        """Set the status of the CRD to Active."""
+        return self._set_crd_phase(CRDTestPhase.Active)
+
+    def set_phase_to_pending(self):
+        """Set the status of the CRD to Pending."""
+        return self._set_crd_phase(CRDTestPhase.Pending)
+
+    def set_phase_to_suspended(self):
+        """Set the status of the CRD to Suspended."""
+        return self._set_crd_phase(CRDTestPhase.Suspended)
+
+    def set_phase_to_failed(self):
+        """Set the status of the CRD to Failed."""
+        return self._set_crd_phase(CRDTestPhase.Failed)
+
+    def _set_crd_phase(self, phase: CRDTestPhase):
         """Set the phase of the CRD.
 
         The CRD phase represents the status of crd itself, not the status

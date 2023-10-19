@@ -61,6 +61,9 @@ class ResultsSubscriber(IResultsSubscriber):
         execution task are available. The results should be interpreted
         and used to set  the status of the CRD.
         """
+        # Define the status that are considered as bad
+        bad_status = (TestCaseStatus.Failed, TestCaseStatus.Error)
+
         self.results_checker.mark_results_received(
             datetime.fromisoformat(
                 results.started_at_time
@@ -69,12 +72,12 @@ class ResultsSubscriber(IResultsSubscriber):
         # prepare the patch to be applied to the CRD to report the results
         test_cases: List[TestCaseStatusType] = []
         # The whole test execution status
-        test_execution_status = CRDTestExecutionStatus.Succeeding
+        whole_test_execution_status = CRDTestExecutionStatus.Succeeding
         failed_test = []
 
         for result in results.test_case_results:
             test_status = TestCaseStatus.from_pb2_test_status(result.status)
-            test_case_status: TestCaseStatusType = {
+            specific_test_case_status: TestCaseStatusType = {
                 # The unique name of the test case, we can consider this
                 # as the ID of the test case.
                 "name": result.name,
@@ -83,18 +86,17 @@ class ResultsSubscriber(IResultsSubscriber):
                 # The time it took to execute the test case.
                 "executionTime": result.execution_duration,
             }
-            failed_test.append(result.name)
             # Check if the whole test suite should be marked as failing
-            test_execution_status = (
-                CRDTestExecutionStatus.Failing
-                if test_status in (TestCaseStatus.Failed, TestCaseStatus.Error)
-                else test_execution_status
-            )
-            if test_status == TestCaseStatus.Error:
-                test_case_status["error"] = result.error_message
-            test_cases.append(test_case_status)
+            if test_status in bad_status:
+                whole_test_execution_status = CRDTestExecutionStatus.Failing
+                failed_test.append(result.name)
+                # If the test case failed due to an error,
+                # add the error message to the status.
+                if test_status == TestCaseStatus.Error:
+                    specific_test_case_status["error"] = result.error_message
+            test_cases.append(specific_test_case_status)
 
-        if test_execution_status == CRDTestExecutionStatus.Failing:
+        if whole_test_execution_status == CRDTestExecutionStatus.Failing:
             logger.error("Test suite failed: %s", failed_test)
             self.crd_manager.error_event(
                 reason="Test suite failed",
@@ -104,7 +106,7 @@ class ResultsSubscriber(IResultsSubscriber):
         status_payload = (
             self.test_suite_status_tracker
             .calculate_current_test_suite_status(
-                current_status_reported=test_execution_status,
+                current_status_reported=whole_test_execution_status,
                 test_cases=test_cases,
                 # get datetime from time()
                 execution_time=datetime.fromisoformat(

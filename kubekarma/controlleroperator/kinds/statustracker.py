@@ -3,7 +3,8 @@ from typing import Optional
 import logging
 
 from kubekarma.controlleroperator.kinds.types import TestSuiteStatusType
-from kubekarma.shared.crd.genericcrd import CRDTestExecutionStatus
+from kubekarma.shared.crd.genericcrd import CRDTestExecutionStatus, \
+    TestCaseStatus
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,14 @@ class TestSuiteStatusTracker:
         All times are in RFC3339 format.
         """
         execution_time_iso = execution_time.isoformat()
+        # count total failed test cases
+        failed_test_cases = [
+            test_case for test_case in test_cases
+            if test_case["status"] in (
+                TestCaseStatus.Failed.value, TestCaseStatus.Error.value
+            )
+        ]
+
         data: TestSuiteStatusType = {
             "lastExecutionTime": execution_time_iso,
             "lastExecutionErrorTime": self.get_last_execution_error_time(
@@ -41,7 +50,9 @@ class TestSuiteStatusTracker:
                 current_execution_time=execution_time_iso
             ),
             "testExecutionStatus": current_status_reported.value,
-            "testCases": test_cases
+            "testCases": test_cases,
+            "passingCount": f"{len(test_cases) - len(failed_test_cases) } / {len(test_cases)}", # noqa
+            "suspended": False
         }
         logger.info("data: %s", data)
         # store the current status

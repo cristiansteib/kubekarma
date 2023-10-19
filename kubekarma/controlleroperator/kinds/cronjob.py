@@ -18,11 +18,18 @@ class CronJobHelper:
         kind: str
     ) -> V1CronJob:
         """Generate the job template to be used by the cronjob."""
-
+        assert isinstance(task_execution_config, dict), \
+            "The task execution config must be a dict. Found: " \
+            f"{type(task_execution_config)}"
+        assert len(crd_instance.cron_job_name) <= 52, \
+            "The cron job name must be less than 52 characters."
         cron_job = V1CronJob()
         cron_job.metadata = V1ObjectMeta(
             name=crd_instance.cron_job_name,
             namespace=crd_instance.namespace,
+            annotations={
+                f"{config.API_GROUP}/worker-task-id": crd_instance.worker_task_id,
+            }
         )
         envs = [
             V1EnvVar(

@@ -3,6 +3,7 @@ from typing import Dict, List
 
 from kubekarma.controlleroperator.kinds.crdinstancemanager import \
     CRDInstanceManager
+from kubekarma.controlleroperator.kinds.testsuitekind import ICrdValidator
 
 
 class InvalidDefinition(Exception):
@@ -13,7 +14,8 @@ class UndefinedCentinel:
     ...
 
 
-class NetworkTestSuiteCRD(CRDInstanceManager):
+class NetworkTestSuiteCRD(ICrdValidator):
+
     DEFINED_ASSERTIONS = [
         "testDNSResolution",
         "testIpBlock",

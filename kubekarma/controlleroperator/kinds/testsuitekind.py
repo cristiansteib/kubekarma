@@ -36,12 +36,14 @@ A TestSuite Kind is composed of:
 """
 import abc
 import contextvars
+import dataclasses
 import uuid
 from hashlib import sha1
 from typing import List, Optional, Type
 
 import kopf
 import yaml
+from kopf import Spec
 from kubernetes import client
 from kubernetes.client import V1CronJob
 
@@ -54,7 +56,6 @@ from kubekarma.controlleroperator.engine.controllerengine import \
 from kubekarma.controlleroperator.kinds.crdinstancemanager import CRD, \
     CRDInstanceManager
 from kubekarma.controlleroperator.kinds.cronjob import CronJobHelper
-from kubekarma.shared.crd.genericcrd import CRDTestPhase
 
 import logging
 
@@ -68,8 +69,18 @@ class ICrdValidator(abc.ABC):
         """Perform validations on the spec of the CRD."""
 
 
+@dataclasses.dataclass
+class TestSuiteKindContext:
+    ...
+
+
 class TestSuiteKindBase(abc.ABC):
-    """This class provides the base functionality for a TestSuiteKind."""
+    """This class provides the base functionality for a TestSuiteKind.
+
+    A TestSuiteKind is a kind of CRD that is used to define a test suite
+    and this class provides the base functionality to handle the lifecycle
+    events of the CRD and to react to the results of the tests.
+    """
 
     def __init__(
         self,
@@ -95,7 +106,11 @@ class TestSuiteKindBase(abc.ABC):
     @property
     @abc.abstractmethod
     def crd_validator(self) -> Type[ICrdValidator]:
-        """Return the validator of the CRD."""
+        """Return the validator of the CRD.
+
+        The validator is responsible to validate the spec of the CRD and
+        return a list of errors if any.
+        """
 
     @property
     @abc.abstractmethod
@@ -126,7 +141,7 @@ class TestSuiteKindBase(abc.ABC):
     ) -> IResultsSubscriber:
         """Return the results' subscriber to react to the results test."""
 
-    def handle_create(self, spec, body, **kwargs):
+    def handle_create(self, spec: Spec, body, **kwargs):
         # I need to copy the context to avoid an error on the kopf framework
         # related to the context management of the handlers, because
         # it uses the contextvars to store the settings of each handler.
@@ -149,7 +164,7 @@ class TestSuiteKindBase(abc.ABC):
         crd = CRD(
             namespace=namespace,
             metadata_name=body['metadata']['name'],
-            cron_job_name=body['metadata']['name'] + job_id,
+            cron_job_name=f"{body['metadata']['name']}-{job_id[:6]}",
             worker_task_id=uuid.uuid4().hex,
             plural=self.api_plural
         )
@@ -164,7 +179,7 @@ class TestSuiteKindBase(abc.ABC):
         cron_job = self.generate_cron_job(
             crd=crd,
             schedule=spec['schedule'],
-            spec=spec,
+            spec=dict(spec),
             the_config=config
         ).to_dict()
 
@@ -173,7 +188,11 @@ class TestSuiteKindBase(abc.ABC):
         kopf.adopt(cron_job, owner=body)
         # Call the api to create the cronjob
         self.create_cron_job(cron_job, crd)
-        subscriber = self.setup_results_subscriber(crd.worker_task_id)
+        subscriber = self.setup_results_subscriber(
+            crd.worker_task_id,
+            dict(spec),
+            crd_manager
+        )
         self.setup_watchdog(crd, subscriber)
 
         # Patch the created CRD with annotation pointing to the created cronjob
@@ -187,10 +206,21 @@ class TestSuiteKindBase(abc.ABC):
             message=f'CronJob created successfully <{crd.cron_job_name}>'
         )
 
-    def setup_results_subscriber(self, worker_task_id) -> IResultsSubscriber:
+        # Set the phase of the CRD to Active
+        crd_manager.set_phase_to_active()
+
+    def setup_results_subscriber(
+        self,
+        worker_task_id: str,
+        spec: dict,
+        crd_manager: CRDInstanceManager
+    ) -> IResultsSubscriber:
         # Listen for the results of the execution task that run in a pod
         # controlled by a CronJob running on a specific namespace.
-        result_subscriber = self.get_results_subscriber()
+        result_subscriber = self.get_results_subscriber(
+            spec=spec,
+            crd_manager=crd_manager
+        )
         self.publisher.add_results_listener(
             execution_id=worker_task_id,
             subscriber=result_subscriber
@@ -234,7 +264,7 @@ class TestSuiteKindBase(abc.ABC):
         )
         errors = crd_validator.validate_spec(spec)
         if errors:
-            crd_manager.set_crd_phase(CRDTestPhase.Failed)
+            crd_manager.set_phase_to_failed()
             self._raise_error(
                 "Invalid spec: %s", errors
             )
