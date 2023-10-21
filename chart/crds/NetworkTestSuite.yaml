@@ -62,7 +62,6 @@ spec:
                           - destinationIP
                           - port
                           - expectSuccess
-                          - protocol
                       testIpBlock:
                         type: object
                         properties:
