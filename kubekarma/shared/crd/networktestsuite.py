@@ -1,9 +1,7 @@
 from copy import deepcopy
 from typing import Dict, List
 
-from kubekarma.controlleroperator.kinds.crdinstancemanager import \
-    CRDInstanceManager
-from kubekarma.controlleroperator.kinds.testsuitekind import ICrdValidator
+from kubekarma.controlleroperator.core.abc.crdvalidator import ICrdValidator
 
 
 class InvalidDefinition(Exception):

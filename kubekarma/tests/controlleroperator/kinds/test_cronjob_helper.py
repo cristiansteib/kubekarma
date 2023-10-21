@@ -3,8 +3,8 @@ import unittest
 from kubernetes.client import V1CronJob
 
 from kubekarma.controlleroperator.config import Config
-from kubekarma.controlleroperator.kinds.crdinstancemanager import CRD
-from kubekarma.controlleroperator.kinds.cronjob import CronJobHelper
+from kubekarma.controlleroperator.core.crdinstancemanager import CRD
+from kubekarma.controlleroperator.core.cronjob import CronJobHelper
 
 
 class CronJobHelperTest(unittest.TestCase):

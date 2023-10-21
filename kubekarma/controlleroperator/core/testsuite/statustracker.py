@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 import logging
 
-from kubekarma.controlleroperator.kinds.types import TestSuiteStatusType
+from kubekarma.controlleroperator.core.testsuite.types import TestSuiteStatusType
 from kubekarma.shared.crd.genericcrd import CRDTestExecutionStatus, \
     TestCaseStatus
 

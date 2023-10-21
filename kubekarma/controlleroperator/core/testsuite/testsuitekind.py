@@ -36,42 +36,32 @@ A TestSuite Kind is composed of:
 """
 import abc
 import contextvars
-import dataclasses
-import uuid
 from hashlib import sha1
-from typing import List, Optional, Type
+from typing import Optional, Type
 
 import kopf
 import yaml
-from kopf import Spec
+from kopf import Body, Spec
 from kubernetes import client
 from kubernetes.client import V1CronJob
 
 from kubekarma.controlleroperator import ITestResultsPublisher
-from kubekarma.controlleroperator.abc.resultspublisher import \
+from kubekarma.controlleroperator.core.abc.resultspublisher import \
     IResultsSubscriber
 from kubekarma.controlleroperator.config import Config, config
-from kubekarma.controlleroperator.engine.controllerengine import \
+from kubekarma.controlleroperator.core.abc.crdvalidator import ICrdValidator
+from kubekarma.controlleroperator.core.controllerengine import \
     ControllerEngine
-from kubekarma.controlleroperator.kinds.crdinstancemanager import CRD, \
+from kubekarma.controlleroperator.core.crdinstancemanager import CRD, \
     CRDInstanceManager
-from kubekarma.controlleroperator.kinds.cronjob import CronJobHelper
+from kubekarma.controlleroperator.core.cronjob import CronJobHelper
 
 import logging
 
+from kubekarma.controlleroperator.core.testsuite.resultssubscriber import \
+    ResultsSubscriber
+
 logger = logging.getLogger(__name__)
-
-
-class ICrdValidator(abc.ABC):
-
-    @abc.abstractmethod
-    def validate_spec(self, spec) -> List[str]:
-        """Perform validations on the spec of the CRD."""
-
-
-@dataclasses.dataclass
-class TestSuiteKindContext:
-    ...
 
 
 class TestSuiteKindBase(abc.ABC):
@@ -133,19 +123,75 @@ class TestSuiteKindBase(abc.ABC):
             kind=self.kind
         )
 
-    @abc.abstractmethod
     def get_results_subscriber(
         self,
         spec,
         crd_manager: CRDInstanceManager
     ) -> IResultsSubscriber:
         """Return the results' subscriber to react to the results test."""
+        return ResultsSubscriber(
+            schedule=spec['schedule'],
+            crd_manager=crd_manager,
+            controller_engine=self.controller_engine
+        )
 
-    def handle_create(self, spec: Spec, body, **kwargs):
+    def __get_crd(
+        self,
+        namespace: str,
+        body: Body,
+        cronjob_name: Optional[str] = None,
+        worker_task_id: Optional[str] = None
+    ) -> CRD:
+        """Build the CRD instance.
+
+        The object contains the information of the CRD instance, that can
+        be used to identify the related resources.
+
+        Args:
+            namespace: The namespace of the CRD instance.
+            body: The body of the CRD instance.
+            cronjob_name: The name of the cronjob related to the CRD instance.
+                This argument is optional because the cronjob name is unknown
+                at the creation time, but for later operations it is
+                available in the .metadata.annotations
+            worker_task_id: The id of the worker task that is running the
+                tests. This argument is optional because the worker task id
+                is unknown at the creation time, but for later operations it
+                is available in the .metadata.annotations
+        Returns:
+            The CRD data object.
+
+        * This is a helper method.
+
+        """
+        return CRD(
+            namespace=namespace,
+            metadata_name=body['metadata']['name'],
+            # TODO: consume the cronjob name from the annotations
+            cron_job_name=cronjob_name,
+            # TODO: consume the worker task id from the annotations
+            worker_task_id=worker_task_id,
+            plural=self.api_plural
+        )
+
+    def __get_crd_manager(
+        self,
+        body: Body,
+        crd: CRD,
+    ) -> CRDInstanceManager:
         # I need to copy the context to avoid an error on the kopf framework
         # related to the context management of the handlers, because
         # it uses the contextvars to store the settings of each handler.
         context_copy: contextvars.Context = contextvars.copy_context()
+        return CRDInstanceManager(
+            api_client=self._api_client,
+            crd_data=crd,
+            body=body,
+            contextvars_copy=context_copy
+        )
+
+    def handle_create(self, spec: Spec, body, **kwargs):
+        """Handle the creation of the CRD instance."""
 
         # Ensure that the kind is the expected one.
         kind = body['kind']
@@ -159,21 +205,20 @@ class TestSuiteKindBase(abc.ABC):
             message=f'Handling {kind}  <{test_name}>'
         )
 
-        job_id = sha1(f"{namespace}/{test_name}".encode('utf-8')).hexdigest()
+        job_id = sha1(
+            f"{namespace}/{test_name}".encode('utf-8')
+        ).hexdigest()[:8]
 
-        crd = CRD(
+        crd = self.__get_crd(
             namespace=namespace,
-            metadata_name=body['metadata']['name'],
-            cron_job_name=f"{body['metadata']['name']}-{job_id[:6]}",
-            worker_task_id=uuid.uuid4().hex,
-            plural=self.api_plural
+            body=body,
+            cronjob_name=f"{body['metadata']['name']}-{job_id[:6]}",
+            worker_task_id=job_id
         )
 
-        crd_manager = CRDInstanceManager(
-            api_client=self._api_client,
-            crd_data=crd,
+        crd_manager = self.__get_crd_manager(
             body=body,
-            contextvars_copy=context_copy
+            crd=crd
         )
         self.validate_kind_spec(spec, crd_manager)
         cron_job = self.generate_cron_job(
@@ -227,20 +272,32 @@ class TestSuiteKindBase(abc.ABC):
         )
         return result_subscriber
 
-    def handle_deletion(self):
+    def handle_delete(self, spec, body, **kwargs):
         pass
 
     def handle_update(self, spec, body, **kwargs):
         pass
 
-    def handle_resume(self):
-        pass
+    def handle_resume_controller_restart(self, spec, body, **kwargs):
+        """Resume the controller operations for the CRD on restart."""
+        logger.debug("Resuming %s", body['metadata']['name'])
 
-    def handle_pause(self):
-        pass
-
-    def receive_results(self):
-        pass
+    def handle_suspend(self, spec, body, **kwargs):
+        """Pause the controller operations for the CRD."""
+        logger.debug("Pausing %s", body['metadata']['name'])
+        crd_manager = self.__get_crd_manager(
+            body=body,
+            crd=self.__get_crd(
+                namespace=body['metadata']['namespace'],
+                body=body
+            )
+        )
+        if spec['suspend']:
+            crd_manager.set_phase_to_suspended()
+            # TODO: suspend related cronjob
+        else:
+            # TODO: resume related cronjob
+            crd_manager.set_phase_to_active()
 
     def validate_is_expected_kind(self, kind: str):
         if kind != self.kind:
@@ -269,7 +326,7 @@ class TestSuiteKindBase(abc.ABC):
                 "Invalid spec: %s", errors
             )
 
-    def create_cron_job(self, cron_job,  crd: CRD):
+    def create_cron_job(self, cron_job, crd: CRD):
         try:
             client.BatchV1Api(
                 api_client=self._api_client

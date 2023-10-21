@@ -1,20 +1,20 @@
 from datetime import datetime
 from typing import List
 
-from kubekarma.controlleroperator.abc.resultspublisher import (
+from kubekarma.controlleroperator.core.abc.resultspublisher import (
     IResultsSubscriber
 )
-from kubekarma.controlleroperator.engine.controllerengine import (
+from kubekarma.controlleroperator.core.controllerengine import (
     ControllerEngine
 )
-from kubekarma.controlleroperator.kinds.crdinstancemanager import (
+from kubekarma.controlleroperator.core.crdinstancemanager import (
     CRDInstanceManager
 )
-from kubekarma.controlleroperator.kinds.networktestsuite.resultsdeadline import \
+from kubekarma.controlleroperator.core.testsuite.resultsdeadline import \
     ResultsDeadlineValidator
-from kubekarma.controlleroperator.kinds.statustracker import \
+from kubekarma.controlleroperator.core.testsuite.statustracker import \
     TestSuiteStatusTracker
-from kubekarma.controlleroperator.kinds.types import TestCaseStatusType
+from kubekarma.controlleroperator.core.testsuite.types import TestCaseStatusType
 from kubekarma.shared.crd.genericcrd import (
     CRDTestExecutionStatus,
     TestCaseStatus
@@ -119,4 +119,3 @@ class ResultsSubscriber(IResultsSubscriber):
                 "status": status_payload
             }
         )
-

@@ -1,6 +1,6 @@
 import threading
 
-from kubekarma.controlleroperator.engine.scheduler import SchedulerThread
+from kubekarma.controlleroperator.core.scheduler import SchedulerThread
 
 
 class ControllerEngine:

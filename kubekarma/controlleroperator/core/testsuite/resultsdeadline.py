@@ -3,7 +3,7 @@ from typing import Optional
 
 from croniter import croniter
 
-from kubekarma.controlleroperator.engine.controllerengine import \
+from kubekarma.controlleroperator.core.controllerengine import \
     ControllerEngine
 
 import logging

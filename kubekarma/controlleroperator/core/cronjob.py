@@ -2,7 +2,7 @@ import yaml
 from kubernetes.client import V1CronJob, V1EnvVar, V1ObjectMeta
 
 from kubekarma.controlleroperator.config import Config
-from kubekarma.controlleroperator.kinds.crdinstancemanager import (
+from kubekarma.controlleroperator.core.crdinstancemanager import (
     CRD
 )
 

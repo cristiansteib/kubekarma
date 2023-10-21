@@ -1,7 +1,7 @@
 import unittest
 from time import sleep, time
 
-from kubekarma.controlleroperator.engine.controllerengine import \
+from kubekarma.controlleroperator.core.controllerengine import \
     ControllerEngine
 
 
@@ -20,8 +20,6 @@ class ControllerEngineTest(unittest.TestCase):
             1,
             hello
         )
-        print("lalalal")
         controller_engine.stop()
         t.join()
-        sleep(2)
-        print("goodbye")
+        sleep(1)

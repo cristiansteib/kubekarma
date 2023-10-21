@@ -118,7 +118,10 @@ spec:
                           - destinationHost
                     required:
                       - name
-
+                suspend:
+                  type: boolean
+                  description: If true, the test suite will not be executed
+                  default: false
               required:
                 - name
                 - testCases
@@ -204,12 +207,9 @@ spec:
         type: string
         description: The status of the whole test suite
         jsonPath: .status.testExecutionStatus
-      - name: Last Success
-        type: date
-        description: The last time the test suite was executed successfully
-        jsonPath: .status.lastSucceededTime
       - name: Last Execution
         type: date
+        format: date-time
         description: The last time the test suite was executed
         jsonPath: .status.lastExecutionTime
       - name: Last failure

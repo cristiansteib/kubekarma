@@ -1,22 +1,22 @@
-import dataclasses
 from datetime import datetime
 from typing import Any
 
 import kopf
 import logging
 
-from kubekarma.controlleroperator.engine.controllerengine import \
+from kubekarma.controlleroperator.core.controllerengine import (
     ControllerEngine
-from kubekarma.controlleroperator.kinds.networktestsuite import API_PLURAL
+)
+from kubekarma.controlleroperator.core.testsuite.testsuitekind import (
+    TestSuiteKindBase
+)
 from kubekarma.controlleroperator.config import config
 from kubekarma.controlleroperator.grpcsrv.server import build_grpc_server
 from kubekarma.controlleroperator import get_results_publisher
-
+from kubekarma.shared.crd.networktestsuite import NetworkTestSuiteCRD
 from kubekarma.controlleroperator.httpserver import get_threaded_server
 from kubernetes import client
 
-from kubekarma.controlleroperator.kinds.networktestsuite.nwng import \
-    NetworkTestSuite
 
 logger = logging.getLogger(__name__)
 api_client = client.ApiClient()
@@ -25,6 +25,13 @@ root_logger = logging.getLogger()
 root_logger.setLevel(logging.DEBUG)
 
 controller_engine = ControllerEngine()
+
+
+class NetworkTestSuite(TestSuiteKindBase):
+    kind = "NetworkTestSuite"
+    api_plural = 'networktestsuites'
+    crd_validator = NetworkTestSuiteCRD
+
 
 crd_network_policy_tes_suite_handler = NetworkTestSuite(
     publisher=get_results_publisher(),
@@ -84,19 +91,15 @@ def get_current_timestamp(**kwargs: Any) -> str:
     return datetime.utcnow().isoformat()
 
 
-@dataclasses.dataclass
-class ApiVersion:
-    group: str
-    version: str
-
-
-def parse_api_version(api_version: str) -> ApiVersion:
-    group, version = api_version.split('/')
-    return ApiVersion(group=group, version=version)
-
-
-(kopf.on.create(
+# Register the NetworkTestSuite CRD
+args = (
     config.API_GROUP,
     config.API_VERSION,
-    API_PLURAL
-)(crd_network_policy_tes_suite_handler.handle_create))
+    crd_network_policy_tes_suite_handler.api_plural
+)
+
+(kopf.on.create(*args)(crd_network_policy_tes_suite_handler.handle_create))
+(kopf.on.update(*args)(crd_network_policy_tes_suite_handler.handle_update))
+(kopf.on.delete(*args)(crd_network_policy_tes_suite_handler.handle_delete))
+(kopf.on.resume(*args)(crd_network_policy_tes_suite_handler.handle_resume_controller_restart)) # noqa
+(kopf.on.field(*args, field='spec.suspend')(crd_network_policy_tes_suite_handler.handle_suspend)) # noqa
