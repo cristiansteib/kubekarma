@@ -60,6 +60,9 @@ class CronJobHelper:
             "jobTemplate": {
                 "spec": {
                     "backoffLimit": 0,
+                    # ttlSecondsAfterFinished should be greater than
+                    # the schedule period X the history limit.
+                    # this means ttlSecondsAfterFinished=gap-time * max(successfulJobsHistoryLimit, failedJobsHistoryLimit) # noqa
                     "ttlSecondsAfterFinished": 60 * 60 * 5,
                     "template": {
                         "spec": {

@@ -8,17 +8,11 @@ from kubekarma.controlleroperator.core.controllerengine import \
 
 import logging
 
+from kubekarma.shared.loghelper import PrefixFilter
+
 logger = logging.getLogger(__name__)
 
-
-class PrefixFilter(logging.Filter):
-
-    def filter(self, record):
-        record.msg = "ResultsDeadlineValidator: " + record.msg
-        return True
-
-
-logger.addFilter(PrefixFilter())
+logger.addFilter(PrefixFilter("ResultsDeadlineValidator: "))
 
 
 class ResultsDeadlineValidator:
@@ -33,7 +27,7 @@ class ResultsDeadlineValidator:
             schedule: str,
             cron_job_name: str,
             controller_engine: ControllerEngine,
-            time_execution_estimation: timedelta = timedelta(minutes=5)
+            time_execution_estimation: timedelta = timedelta(minutes=1)
     ):
         self.time_execution_estimation = time_execution_estimation
         self.controller_engine = controller_engine
@@ -55,7 +49,7 @@ class ResultsDeadlineValidator:
             self._get_next_time_to_receive_results()
         )
         logger.debug(
-            "scheduled assert for CronJob %s at %s",
+            "Next scheduled assert for CronJob %s at %s",
             self.cron_job_name,
             self.__expected_time_to_receive_results,
         )
@@ -95,14 +89,10 @@ class ResultsDeadlineValidator:
             #     )
             # )
             #
-        # check if happened too much time since the last response
-        if self.__last_time_received_results is None:
-            logger.error(
-                "No response received for the CronJob <%s>",
-                self.cron_job_name
-            )
+            self.__set_next_time_to_receive_results()
+            return
 
-        # calculate the time since the last response
+        # check if happened too much time since the last response
         time_since_last_response = (
             datetime.now() - self.__last_time_received_results
         )
@@ -114,9 +104,9 @@ class ResultsDeadlineValidator:
                 time_since_last_response
             )
 
-        else:
-            logger.debug(
-                "Response received for the CronJob <%s>",
-                self.cron_job_name
-            )
-            self.__set_next_time_to_receive_results()
+        logger.debug(
+            "Response received for the CronJob <%s>",
+            self.cron_job_name
+        )
+        self.__last_time_received_results = None
+        self.__set_next_time_to_receive_results()

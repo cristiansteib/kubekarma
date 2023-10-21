@@ -190,11 +190,6 @@ spec:
                 - phase
                 - testCases
       additionalPrinterColumns:
-      # https://github.com/kubernetes-sigs/controller-tools/issues/447
-      - name: Age
-        type: date
-        description: The age of the suite
-        jsonPath: .metadata.creationTimestamp
       - name: Phase
         type: string
         description: The phase of the CRD
@@ -216,3 +211,8 @@ spec:
         type: date
         description: The last time error that occurred when executing the test suite
         jsonPath: .status.lastExecutionErrorTime
+      # https://github.com/kubernetes-sigs/controller-tools/issues/447
+      - name: Age
+        type: date
+        description: The age of the suite
+        jsonPath: .metadata.creationTimestamp
