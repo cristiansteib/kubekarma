@@ -22,7 +22,7 @@ class IResultsSubscriber(Generic[T], ABC):
     def on_delete(self):
         """Perform the required stuff on deletion.
 
-        A hook method called when the publisher removes this subscriber.
+        A hook method called when the __publisher removes this subscriber.
         """
 
 

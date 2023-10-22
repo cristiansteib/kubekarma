@@ -8,7 +8,7 @@ NetworkTestSuite
 - `NetworkTestSuite`
 
 ## Application Acceptance Continuous Test (AACT)
-I've defined this test as an **I define this test as an Application Acceptance Continuous Test (AACT).**
+**I define this test as an Application Acceptance Continuous Test (AACT).**
 
 The test's main point of view is the application itself; it tests if the application 
 has the correct configuration in the platform to run correctly. As the infrastructure can change

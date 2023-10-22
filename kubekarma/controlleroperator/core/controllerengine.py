@@ -1,5 +1,7 @@
 import threading
 
+from kubekarma.controlleroperator import ITestResultsPublisher, \
+    get_results_publisher
 from kubekarma.controlleroperator.core.scheduler import SchedulerThread
 
 
@@ -8,6 +10,7 @@ class ControllerEngine:
 
     def __init__(self):
         self.scheduler = SchedulerThread()
+        self.__publisher = get_results_publisher()
 
     def is_healthy(self) -> bool:
         """Return True if the controller is healthy, False otherwise."""
@@ -21,3 +24,7 @@ class ControllerEngine:
         """Start the controller"""
         self.scheduler.start()
         return self.scheduler
+
+    def get_results_publisher(self) -> ITestResultsPublisher:
+        """Get the __publisher of the results of the test suite."""
+        return self.__publisher

@@ -10,7 +10,7 @@ __lock = threading.Lock()
 
 
 def get_results_publisher() -> ITestResultsPublisher:
-    """Return the result publisher."""
+    """Return the result __publisher."""
     with __lock:
         global __instance_results_publisher
         if __instance_results_publisher is None:

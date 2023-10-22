@@ -14,7 +14,6 @@ class ResultsReportPublisher(ITestResultsPublisher):
 
     def __init__(self):
         self.subscribers: Dict[str, Set[IResultsSubscriber]] = {}
-        logger.info("Created new results publisher: %s", id(self))
 
     def add_results_listener(
         self,
@@ -23,21 +22,33 @@ class ResultsReportPublisher(ITestResultsPublisher):
     ):
         """Add a new listener to the results of the execution task."""
         logger.info(
-            "Adding new results listener for execution_id: %s",
+            "Adding listener %s to receive results of execution %s",
+            subscriber,
             execution_id
         )
-        if execution_id not in self.subscribers:
-            self.subscribers[execution_id] = set()
-        self.subscribers[execution_id].add(subscriber)
+        self.subscribers.setdefault(execution_id, set()).add(subscriber)
 
     def remove_results_listeners(self, execution_id: str):
         # Delete all abject to avoid memory leaks.
         subscribers_set = self.subscribers.pop(execution_id, {})
         for subscriber in subscribers_set:
-            # Send the delete event to the subscriber.
-            subscriber.on_delete()
-            del subscriber
+            # Catch any exception to avoid breaking the loop causing
+            # orphaned subscribers.
+            try:
+                # Call the hook to delete the subscriber.
+                subscriber.on_delete()
+            except Exception as e:
+                logger.error(
+                    "Error calling .on_delete() to subscriber: %s",
+                    type(subscriber)
+                )
+                logger.exception(e)
+            finally:
+                del subscriber
 
     def notify_new_results(self, execution_id: str, results):
         for subscriber in self.subscribers.get(execution_id, []):
-            subscriber.update(results)
+            try:
+                subscriber.update(results)
+            except Exception as e:
+                logger.exception(e)

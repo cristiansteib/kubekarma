@@ -1,4 +1,4 @@
-kopf[full-auth]
+kopf[full-auth]==1.36.2
 kubernetes==28.1.0
 fastapi
 uvicorn

@@ -26,7 +26,11 @@ rules:
     verbs: [list, watch]
   - apiGroups: ["batch"]
     resources: [cronjobs]
-    verbs: [list, watch, create]
+    verbs:
+      - list
+      - watch
+      - create # Required for the cronjob controller to create Jobs (the test worker)
+      - patch # Required for the cronjob controller to patch Jobs (suspend action)
 
   - apiGroups: [""]
     resources:

@@ -40,9 +40,9 @@ deploy:
             command: [ "kubectl", "apply", "-f", "examples/NetworkTestSuite/test_with_all_asserts.yaml", "--namespace=another-namespace" ]
 
         # create a few Kopf-specific custom resources in the cluster
-        # kubectl apply -f https://github.com/nolar/kopf/raw/main/peering.yaml
-#        - host:
-#            command: ["kubectl", "apply", "-f", "https://github.com/nolar/kopf/raw/main/peering.yaml"]
+#         kubectl apply -f https://github.com/nolar/kopf/raw/main/peering.yaml
+        - host:
+            command: ["kubectl", "apply", "-f", "https://github.com/nolar/kopf/raw/main/peering.yaml"]
 
 ---
 apiVersion: skaffold/v4beta6

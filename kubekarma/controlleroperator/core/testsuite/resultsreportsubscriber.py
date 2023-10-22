@@ -22,7 +22,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ResultsSubscriber(IResultsSubscriber):
+class ResultsReportSubscriber(IResultsSubscriber):
+    """A subscriber that will update the status of the CRD.
+
+    This class reacts to the results of the execution of the test suite
+    to then update the status of the CRD based on the results.
+    """
 
     def __init__(
         self,
@@ -45,7 +50,7 @@ class ResultsSubscriber(IResultsSubscriber):
     ):
         """Receive the results of some the execution task.
 
-        This method is called by the publisher when the results of an
+        This method is called by the __publisher when the results of an
         execution task are available. The results should be interpreted
         and used to set  the status of the CRD.
         """
@@ -91,14 +96,11 @@ class ResultsSubscriber(IResultsSubscriber):
             .calculate_current_test_suite_status(
                 current_status_reported=whole_test_execution_status,
                 test_cases=test_cases,
-                # get datetime from time()
                 execution_time=datetime.fromisoformat(
                     results.started_at_time
                 )
             )
         )
-        self.crd_manager.patch_crd(
-            patch={
-                "status": status_payload
-            }
+        self.crd_manager.set_test_suite_result_status(
+            status=status_payload
         )
