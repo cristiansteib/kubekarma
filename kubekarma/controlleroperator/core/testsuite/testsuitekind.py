@@ -34,19 +34,15 @@ A TestSuite Kind is composed of:
   - Execution error
   - A deadline is reached and the results are not received.
 """
-import abc
-import contextvars
 from hashlib import sha1
-from typing import Optional, Type
+from typing import Optional
 
-from kopf import Body
 from kubernetes import client
 from kubernetes.client import V1CronJob
 
 from kubekarma.controlleroperator.core.abc.resultspublisher import \
     IResultsSubscriber
 from kubekarma.controlleroperator.config import Config
-from kubekarma.controlleroperator.core.abc.crdvalidator import ICrdValidator
 from kubekarma.controlleroperator.core.abc.testsuitekind import ITestSuiteKind
 from kubekarma.controlleroperator.core.controllerengine import \
     ControllerEngine
@@ -191,4 +187,3 @@ class TestSuiteKindBase(ITestSuiteKind):
             spec,
             crd_manager
         )
-

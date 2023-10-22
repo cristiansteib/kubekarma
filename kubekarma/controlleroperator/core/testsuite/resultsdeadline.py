@@ -1,6 +1,6 @@
 import sched
 from datetime import datetime, timedelta
-from typing import Optional, Type
+from typing import Optional
 
 from croniter import croniter
 
@@ -51,8 +51,6 @@ class ResultsDeadlineValidator(IResultsSubscriber):
         # PRINT THE STACK TRACE AT THIS POINT
         import traceback
         traceback.print_stack()
-
-
 
     def mark_results_received(self, received_at: datetime):
         """Mark the results as received."""
