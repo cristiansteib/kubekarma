@@ -3,7 +3,6 @@ import datetime
 import os
 from typing import List
 
-import urllib3
 import yaml
 
 from kubekarma.shared.pb2 import controller_pb2

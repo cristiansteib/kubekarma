@@ -1,7 +1,7 @@
 from typing import Dict, Set
 
-from kubekarma.controlleroperator.abc.resultspublisher import (
-    IResultsPublisher,
+from kubekarma.controlleroperator.core.abc.resultspublisher import (
+    ITestResultsPublisher,
     IResultsSubscriber
 )
 
@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ResultsPublisher(IResultsPublisher):
+class TestResultsPublisher(ITestResultsPublisher):
 
     def __init__(self):
         self.subscribers: Dict[str, Set[IResultsSubscriber]] = {}
@@ -30,11 +30,12 @@ class ResultsPublisher(IResultsPublisher):
             self.subscribers[execution_id] = set()
         self.subscribers[execution_id].add(subscriber)
 
-    def remove_all_results_listeners(self, execution_id_token: str):
+    def remove_results_listeners(self, execution_id: str):
         # Delete all abject to avoid memory leaks.
-        for subscriber in self.subscribers.pop(execution_id_token, []):
+        for subscriber in self.subscribers.pop(execution_id, []):
+            # Send the delete event to the subscriber.
             del subscriber
 
     def notify_new_results(self, execution_id: str, results):
         for subscriber in self.subscribers.get(execution_id, []):
-            subscriber.receive_results(results)
+            subscriber.update(results)

@@ -132,5 +132,4 @@ class NetworkTestSuite:
                     f"{end_time - start_time:0.4f}s"
                 )
                 results.append(test_result)
-
         return results

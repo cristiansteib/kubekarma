@@ -62,7 +62,6 @@ spec:
                           - destinationIP
                           - port
                           - expectSuccess
-                          - protocol
                       testIpBlock:
                         type: object
                         properties:
@@ -118,7 +117,10 @@ spec:
                           - destinationHost
                     required:
                       - name
-
+                suspend:
+                  type: boolean
+                  description: If true, the test suite will not be executed
+                  default: false
               required:
                 - name
                 - testCases
@@ -180,32 +182,36 @@ spec:
                 lastSucceededTime:
                   type: string
                   description: The last time the test case was executed successfully
+                passingCount:
+                  type: string
+                  description: The number of test cases that passed (Succeeded/Total)
               required:
                 - phase
                 - testCases
       additionalPrinterColumns:
-      # https://github.com/kubernetes-sigs/controller-tools/issues/447
-      - name: Age
-        type: date
-        description: The age of the suite
-        jsonPath: .metadata.creationTimestamp
       - name: Phase
         type: string
         description: The phase of the CRD
         jsonPath: .status.phase
+      - name: Passing
+        type: string
+        description: The number of test cases passed/total
+        jsonPath: .status.passingCount
       - name: Status
         type: string
         description: The status of the whole test suite
         jsonPath: .status.testExecutionStatus
-      - name: Last Success
-        type: date
-        description: The last time the test suite was executed successfully
-        jsonPath: .status.lastSucceededTime
       - name: Last Execution
         type: date
+        format: date-time
         description: The last time the test suite was executed
         jsonPath: .status.lastExecutionTime
       - name: Last failure
         type: date
         description: The last time error that occurred when executing the test suite
         jsonPath: .status.lastExecutionErrorTime
+      # https://github.com/kubernetes-sigs/controller-tools/issues/447
+      - name: Age
+        type: date
+        description: The age of the suite
+        jsonPath: .metadata.creationTimestamp
