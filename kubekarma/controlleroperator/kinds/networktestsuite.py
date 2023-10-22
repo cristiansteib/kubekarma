@@ -1,6 +1,10 @@
 from copy import deepcopy
 from typing import Dict, List
 
+from kubekarma.controlleroperator.core.abc.crdvalidator import ICrdValidator
+from kubekarma.controlleroperator.core.testsuite.testsuitekind import \
+    TestSuiteKindBase
+
 
 class InvalidDefinition(Exception):
     ...
@@ -10,7 +14,8 @@ class UndefinedCentinel:
     ...
 
 
-class NetworkTestSuiteCRD:
+class NetworkTestSuiteCrdValidator(ICrdValidator):
+
     DEFINED_ASSERTIONS = [
         "testDNSResolution",
         "testIpBlock",
@@ -64,3 +69,9 @@ class NetworkTestSuiteCRD:
             )
 
         return errors
+
+
+class NetworkTestSuite(TestSuiteKindBase):
+    kind = "NetworkTestSuite"
+    api_plural = 'networktestsuites'
+    crd_validator = NetworkTestSuiteCrdValidator

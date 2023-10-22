@@ -1,20 +1,20 @@
 import threading
 from typing import Optional
 
-from kubekarma.controlleroperator.resultspublisher import ResultsPublisher
-from kubekarma.controlleroperator.abc.resultspublisher import IResultsPublisher
+from kubekarma.controlleroperator.testresultspublisher import TestResultsPublisher
+from kubekarma.controlleroperator.core.abc.resultspublisher import ITestResultsPublisher
 
-__instance_results_publisher: Optional[IResultsPublisher] = None
+__instance_results_publisher: Optional[ITestResultsPublisher] = None
 
 __lock = threading.Lock()
 
 
-def get_results_publisher() -> IResultsPublisher:
+def get_results_publisher() -> ITestResultsPublisher:
     """Return the result publisher."""
     with __lock:
         global __instance_results_publisher
         if __instance_results_publisher is None:
-            __instance_results_publisher = ResultsPublisher()
+            __instance_results_publisher = TestResultsPublisher()
     return __instance_results_publisher
 
 

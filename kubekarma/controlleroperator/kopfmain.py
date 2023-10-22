@@ -1,17 +1,16 @@
-import dataclasses
 from datetime import datetime
 from typing import Any
 
 import kopf
 import logging
 
-from kubekarma.controlleroperator.kinds.networktestsuite import API_PLURAL
+from kubekarma.controlleroperator.core.controllerengine import (
+    ControllerEngine
+)
 from kubekarma.controlleroperator.config import config
 from kubekarma.controlleroperator.grpcsrv.server import build_grpc_server
 from kubekarma.controlleroperator import get_results_publisher
-from kubekarma.controlleroperator.kinds.networktestsuite.networktestsuite import (
-    NetworkTestSuiteHandler
-)
+from kubekarma.controlleroperator.kinds.networktestsuite import NetworkTestSuite
 from kubekarma.controlleroperator.httpserver import get_threaded_server
 from kubernetes import client
 
@@ -19,15 +18,10 @@ from kubernetes import client
 logger = logging.getLogger(__name__)
 api_client = client.ApiClient()
 
-publisher = get_results_publisher()
-
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.DEBUG)
 
-
-crd_network_policy_tes_suite_handler = NetworkTestSuiteHandler(
-    publisher=publisher
-)
+controller_engine = ControllerEngine()
 
 
 # I need to share the memory space between the kopf process and the http server
@@ -60,7 +54,9 @@ def configure(settings: kopf.OperatorSettings, **_):
 def start_http_server(**kwargs):
     global grpc_server
     global http_server_thread
+    global controller_engine
     http_server_thread.start()
+    controller_engine.start()
     logger.info("Starting gRPC server...")
     grpc_server.start()
 
@@ -80,19 +76,20 @@ def get_current_timestamp(**kwargs: Any) -> str:
     return datetime.utcnow().isoformat()
 
 
-@dataclasses.dataclass
-class ApiVersion:
-    group: str
-    version: str
+# Register the NetworkTestSuite CRD
+network_test_suite = NetworkTestSuite(
+    publisher=get_results_publisher(),
+    controller_engine=controller_engine
+)
 
-
-def parse_api_version(api_version: str) -> ApiVersion:
-    group, version = api_version.split('/')
-    return ApiVersion(group=group, version=version)
-
-
-(kopf.on.create(
+args = (
     config.API_GROUP,
     config.API_VERSION,
-    API_PLURAL
-)(crd_network_policy_tes_suite_handler.handle_create))
+    network_test_suite.api_plural
+)
+
+(kopf.on.create(*args)(network_test_suite.handle_create))
+(kopf.on.update(*args)(network_test_suite.handle_update))
+(kopf.on.delete(*args)(network_test_suite.handle_delete))
+(kopf.on.resume(*args)(network_test_suite.handle_resume_controller_restart)) # noqa
+(kopf.on.field(*args, field='spec.suspend')(network_test_suite.handle_suspend)) # noqa

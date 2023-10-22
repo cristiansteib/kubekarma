@@ -1,4 +1,4 @@
-from typing import NotRequired, TypedDict
+from typing import TypedDict
 
 from kubekarma.worker.abs.assertion import IAssertion
 
