@@ -4,14 +4,11 @@ from typing import List
 from kubekarma.controlleroperator.core.abc.resultspublisher import (
     IResultsSubscriber
 )
-from kubekarma.controlleroperator.core.controllerengine import (
-    ControllerEngine
-)
+
 from kubekarma.controlleroperator.core.crdinstancemanager import (
     CRDInstanceManager
 )
-from kubekarma.controlleroperator.core.testsuite.resultsdeadline import \
-    ResultsDeadlineValidator
+
 from kubekarma.controlleroperator.core.testsuite.statustracker import \
     TestSuiteStatusTracker
 from kubekarma.controlleroperator.core.testsuite.types import TestCaseStatusType
@@ -27,10 +24,6 @@ logger = logging.getLogger(__name__)
 
 class ResultsSubscriber(IResultsSubscriber):
 
-    def __del__(self):
-        # Stop the results checker service
-        pass
-
     def __init__(
         self,
         schedule: str,
@@ -41,7 +34,6 @@ class ResultsSubscriber(IResultsSubscriber):
         Args:
             schedule: The schedule of the test suite, in crontab format.
             crd_manager: The manager of the CRD instance.
-            controller_engine: The controller engine.
         """
         self.crd_manager = crd_manager
         self.test_suite_status_tracker = TestSuiteStatusTracker()

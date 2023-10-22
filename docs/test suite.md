@@ -45,3 +45,4 @@ The status of each test case can be in one of the following steps:
 Further details could be available in the `status.testCases[*].error` field.
 
 
+## How to define a new TestSuite kind?

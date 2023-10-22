@@ -36,7 +36,6 @@ A TestSuite Kind is composed of:
 """
 import abc
 import contextvars
-import dataclasses
 from hashlib import sha1
 from typing import Optional, Type
 
@@ -139,7 +138,6 @@ class TestSuiteKindBase(abc.ABC):
 
     def __get_crd(
         self,
-        namespace: str,
         body: Body,
         cronjob_name: Optional[str] = None,
         worker_task_id: Optional[str] = None
@@ -150,7 +148,6 @@ class TestSuiteKindBase(abc.ABC):
         be used to identify the related resources.
 
         Args:
-            namespace: The namespace of the CRD instance.
             body: The body of the CRD instance.
             cronjob_name: The name of the cronjob related to the CRD instance.
                 This argument is optional because the cronjob name is unknown
@@ -166,15 +163,21 @@ class TestSuiteKindBase(abc.ABC):
         * This is a helper method.
 
         """
+        if not cronjob_name:
+            return CRD.from_body(
+                body=body,
+                plural=self.api_plural
+            )
+
         return CRD(
-            namespace=namespace,
+            namespace=body['metadata']['namespace'],
             metadata_name=body['metadata']['name'],
-            # TODO: consume the cronjob name from the annotations
             cron_job_name=cronjob_name,
-            # TODO: consume the worker task id from the annotations
             worker_task_id=worker_task_id,
             plural=self.api_plural
         )
+
+
 
     def __get_crd_manager(
         self,
@@ -212,7 +215,6 @@ class TestSuiteKindBase(abc.ABC):
         ).hexdigest()[:8]
 
         crd = self.__get_crd(
-            namespace=namespace,
             body=body,
             cronjob_name=f"{body['metadata']['name']}-{job_id[:6]}",
             worker_task_id=job_id
@@ -298,12 +300,21 @@ class TestSuiteKindBase(abc.ABC):
         - ResultsSubscriber
         - CRDInstanceManager
         """
-        logger.info("[%s] Cleaning the room for the %s", self.kind, body['metadata']['name'])
-        return
-        # ctx = object()
-        # self.publisher.remove_results_listeners(
-        #     execution_id=ctx.worker_task_id
-        # )
+
+        crd = self.__get_crd(
+            body=body
+        )
+
+        logger.info(
+            "%s: %s/%s cleaning the room.",
+            self.kind,
+            crd.namespace,
+            crd.metadata_name
+        )
+
+        self.publisher.remove_results_listeners(
+            execution_id=crd.worker_task_id
+        )
 
     def handle_update(self, spec, body, **kwargs):
         pass
@@ -318,7 +329,6 @@ class TestSuiteKindBase(abc.ABC):
         crd_manager = self.__get_crd_manager(
             body=body,
             crd=self.__get_crd(
-                namespace=body['metadata']['namespace'],
                 body=body
             )
         )

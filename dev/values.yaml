@@ -1,4 +1,4 @@
 workerImage:
   repository: localhost:5000/network-policy-test-worker
   pullPolicy: IfNotPresent
-  tag: "868049f-dirty"
+  tag: "507afd7-dirty"

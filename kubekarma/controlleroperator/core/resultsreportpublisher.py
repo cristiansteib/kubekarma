@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class TestResultsPublisher(ITestResultsPublisher):
+class ResultsReportPublisher(ITestResultsPublisher):
 
     def __init__(self):
         self.subscribers: Dict[str, Set[IResultsSubscriber]] = {}
@@ -32,8 +32,10 @@ class TestResultsPublisher(ITestResultsPublisher):
 
     def remove_results_listeners(self, execution_id: str):
         # Delete all abject to avoid memory leaks.
-        for subscriber in self.subscribers.pop(execution_id, []):
+        subscribers_set = self.subscribers.pop(execution_id, {})
+        for subscriber in subscribers_set:
             # Send the delete event to the subscriber.
+            subscriber.on_delete()
             del subscriber
 
     def notify_new_results(self, execution_id: str, results):

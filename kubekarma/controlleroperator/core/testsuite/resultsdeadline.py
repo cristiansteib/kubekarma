@@ -1,5 +1,6 @@
+import sched
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Type
 
 from croniter import croniter
 
@@ -40,6 +41,7 @@ class ResultsDeadlineValidator(IResultsSubscriber):
         )
         self.__expected_time_to_receive_results: Optional[datetime] = None
         self.__last_time_received_results: Optional[datetime] = None
+        self.__next_sched_event: Optional[sched.Event] = None
         self.__set_next_time_to_receive_results()
 
     def mark_results_received(self, received_at: datetime):
@@ -55,7 +57,7 @@ class ResultsDeadlineValidator(IResultsSubscriber):
             self.cron_job_name,
             self.__expected_time_to_receive_results,
         )
-        self.controller_engine.scheduler.enterabs(
+        self.__next_sched_event = self.controller_engine.scheduler.enterabs(
             self.__expected_time_to_receive_results.timestamp(),
             1,
             self.__assert_if_response_was_received
@@ -120,6 +122,17 @@ class ResultsDeadlineValidator(IResultsSubscriber):
             )
         )
 
-    def __del__(self):
-        # TODO; cancel the scheduled event
-        pass
+    def on_delete(self):
+        # Cancel de scheduled event
+        if self.__next_sched_event is not None:
+            logger.debug(
+                "[%s] Canceling next scheduled event %s ...",
+                self.cron_job_name,
+                self.__next_sched_event.time
+            )
+            self.controller_engine.scheduler.cancel(self.__next_sched_event)
+        else:
+            logger.debug(
+                "[%s] No next scheduled event to cancel.",
+                self.cron_job_name
+            )

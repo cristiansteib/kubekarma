@@ -2,6 +2,7 @@ import contextvars
 import dataclasses
 
 import kopf
+from kopf import Body
 from kopf._cogs.structs import bodies
 from kubernetes import client
 from kubernetes.client import ApiClient
@@ -48,6 +49,20 @@ class CRD:
         if not self.plural:
             raise ValueError("plural is required")
 
+    @classmethod
+    def from_body(cls, body: Body, plural: str) -> "CRD":
+        """Create a CRD instance from a body."""
+        return cls(
+            namespace=body["metadata"]["namespace"],
+            metadata_name=body["metadata"]["name"],
+            cron_job_name=body["metadata"]["annotations"][
+                cls.__get_key("cronjob")
+            ],
+            worker_task_id=body["metadata"]["annotations"][
+                cls.__get_key("worker-task-id")
+            ],
+            plural=plural,
+        )
 
 
 class CRDInstanceManager:

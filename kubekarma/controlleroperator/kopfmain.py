@@ -48,6 +48,7 @@ def configure(settings: kopf.OperatorSettings, **_):
     settings.execution.max_workers = 8
     settings.watching.connect_timeout = 1 * 60
     settings.watching.server_timeout = 5 * 60
+    settings.persistence.finalizer = config.API_GROUP + "/finalizer"
 
 
 @kopf.on.startup()
