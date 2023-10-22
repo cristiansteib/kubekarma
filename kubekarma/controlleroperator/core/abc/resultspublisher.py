@@ -19,6 +19,10 @@ class IResultsSubscriber(Generic[T], ABC):
     def __hash__(self):
         return hash(id(self))
 
+    @abstractmethod
+    def __del__(self):
+        """Delete the subscriber."""
+
 
 class ITestResultsPublisher(ABC):
     """An interface to publish the results of the execution task.
@@ -36,7 +40,7 @@ class ITestResultsPublisher(ABC):
         """Add a new listener to the results of the execution task."""
 
     @abstractmethod
-    def remove_all_results_listeners(self, execution_id_token: str):
+    def remove_results_listeners(self, execution_id: str):
         """Remove all the listeners for the given execution task."""
 
     @abstractmethod

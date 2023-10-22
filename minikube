@@ -10,5 +10,4 @@ minikube start --delete-on-failure \
 info "Enabling minikube addons..."
 minikube -p custom addons enable metrics-server
 
-
 kubectl apply -f https://github.com/nolar/kopf/raw/main/peering.yaml

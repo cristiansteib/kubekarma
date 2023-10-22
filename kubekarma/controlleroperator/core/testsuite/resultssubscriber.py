@@ -27,11 +27,14 @@ logger = logging.getLogger(__name__)
 
 class ResultsSubscriber(IResultsSubscriber):
 
+    def __del__(self):
+        # Stop the results checker service
+        pass
+
     def __init__(
         self,
         schedule: str,
-        crd_manager: CRDInstanceManager,
-        controller_engine: ControllerEngine
+        crd_manager: CRDInstanceManager
     ):
         """Initialize the subscriber.
 
@@ -42,14 +45,7 @@ class ResultsSubscriber(IResultsSubscriber):
         """
         self.crd_manager = crd_manager
         self.test_suite_status_tracker = TestSuiteStatusTracker()
-        self.controller_engine = controller_engine
         self.schedule = schedule
-        # The last time the results were received
-        self.results_checker = ResultsDeadlineValidator(
-            schedule=schedule,
-            cron_job_name=crd_manager.crd_data.cron_job_name,
-            controller_engine=controller_engine
-        )
 
     def update(
         self,
@@ -64,11 +60,6 @@ class ResultsSubscriber(IResultsSubscriber):
         # Define the status that are considered as bad
         bad_status = (TestCaseStatus.Failed, TestCaseStatus.Error)
 
-        self.results_checker.mark_results_received(
-            datetime.fromisoformat(
-                results.started_at_time
-            )
-        )
         # prepare the patch to be applied to the CRD to report the results
         test_cases: List[TestCaseStatusType] = []
         # The whole test execution status

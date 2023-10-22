@@ -30,9 +30,10 @@ class TestResultsPublisher(ITestResultsPublisher):
             self.subscribers[execution_id] = set()
         self.subscribers[execution_id].add(subscriber)
 
-    def remove_all_results_listeners(self, execution_id_token: str):
+    def remove_results_listeners(self, execution_id: str):
         # Delete all abject to avoid memory leaks.
-        for subscriber in self.subscribers.pop(execution_id_token, []):
+        for subscriber in self.subscribers.pop(execution_id, []):
+            # Send the delete event to the subscriber.
             del subscriber
 
     def notify_new_results(self, execution_id: str, results):

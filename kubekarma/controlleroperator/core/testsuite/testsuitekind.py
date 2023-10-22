@@ -36,6 +36,7 @@ A TestSuite Kind is composed of:
 """
 import abc
 import contextvars
+import dataclasses
 from hashlib import sha1
 from typing import Optional, Type
 
@@ -58,6 +59,8 @@ from kubekarma.controlleroperator.core.cronjob import CronJobHelper
 
 import logging
 
+from kubekarma.controlleroperator.core.testsuite.resultsdeadline import \
+    ResultsDeadlineValidator
 from kubekarma.controlleroperator.core.testsuite.resultssubscriber import \
     ResultsSubscriber
 
@@ -132,7 +135,6 @@ class TestSuiteKindBase(abc.ABC):
         return ResultsSubscriber(
             schedule=spec['schedule'],
             crd_manager=crd_manager,
-            controller_engine=self.controller_engine
         )
 
     def __get_crd(
@@ -185,7 +187,7 @@ class TestSuiteKindBase(abc.ABC):
         context_copy: contextvars.Context = contextvars.copy_context()
         return CRDInstanceManager(
             api_client=self._api_client,
-            crd_data=crd,
+            crd_ctx=crd,
             body=body,
             contextvars_copy=context_copy
         )
@@ -240,10 +242,8 @@ class TestSuiteKindBase(abc.ABC):
         )
         self.setup_watchdog(crd, subscriber)
 
-        # Patch the created CRD with annotation pointing to the created cronjob
-        # and the code version used by this handler.
-        # This will allow for future version perform the required changes.
-        crd_manager.patch_with_cronjob_notation(crd)
+        # Store the information of the CRD instance
+        crd_manager.save()
 
         # Trigger an event for the CRD related to the creation of the cronjob
         crd_manager.info_event(
@@ -262,6 +262,9 @@ class TestSuiteKindBase(abc.ABC):
     ) -> IResultsSubscriber:
         # Listen for the results of the execution task that run in a pod
         # controlled by a CronJob running on a specific namespace.
+
+        # A listener to change the status of the CRD based on the
+        # test execution result
         result_subscriber = self.get_results_subscriber(
             spec=spec,
             crd_manager=crd_manager
@@ -270,10 +273,37 @@ class TestSuiteKindBase(abc.ABC):
             execution_id=worker_task_id,
             subscriber=result_subscriber
         )
+
+        # A listener to watch and ensure the result are received in time.
+        deadline_validator = ResultsDeadlineValidator(
+            schedule=spec['schedule'],
+            cron_job_name=crd_manager.crd_data.cron_job_name,
+            controller_engine=self.controller_engine
+        )
+        self.publisher.add_results_listener(
+            execution_id=worker_task_id,
+            subscriber=deadline_validator
+        )
+
         return result_subscriber
 
     def handle_delete(self, spec, body, **kwargs):
-        pass
+        """Handle the deletion of the CRD instance.
+
+        All Kubernetes objects related should be deleted, also the
+        instance classes should be deleted.
+
+        Class Services related:
+        - Publisher
+        - ResultsSubscriber
+        - CRDInstanceManager
+        """
+        logger.info("[%s] Cleaning the room for the %s", self.kind, body['metadata']['name'])
+        return
+        # ctx = object()
+        # self.publisher.remove_results_listeners(
+        #     execution_id=ctx.worker_task_id
+        # )
 
     def handle_update(self, spec, body, **kwargs):
         pass

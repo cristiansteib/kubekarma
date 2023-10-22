@@ -3,6 +3,8 @@ from typing import Optional
 
 from croniter import croniter
 
+from kubekarma.controlleroperator.core.abc.resultspublisher import \
+    IResultsSubscriber, T
 from kubekarma.controlleroperator.core.controllerengine import \
     ControllerEngine
 
@@ -15,8 +17,8 @@ logger = logging.getLogger(__name__)
 logger.addFilter(PrefixFilter("ResultsDeadlineValidator: "))
 
 
-class ResultsDeadlineValidator:
-    """A class to observe if results was received or not.
+class ResultsDeadlineValidator(IResultsSubscriber):
+    """A class to observe if results was received or not at time.
 
     This class will report an error if the results are not received
     at the expected time.
@@ -110,3 +112,14 @@ class ResultsDeadlineValidator:
         )
         self.__last_time_received_results = None
         self.__set_next_time_to_receive_results()
+
+    def update(self, results: T):
+        self.mark_results_received(
+            datetime.fromisoformat(
+                results.started_at_time
+            )
+        )
+
+    def __del__(self):
+        # TODO; cancel the scheduled event
+        pass

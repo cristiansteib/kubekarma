@@ -7,13 +7,10 @@ import logging
 from kubekarma.controlleroperator.core.controllerengine import (
     ControllerEngine
 )
-from kubekarma.controlleroperator.core.testsuite.testsuitekind import (
-    TestSuiteKindBase
-)
 from kubekarma.controlleroperator.config import config
 from kubekarma.controlleroperator.grpcsrv.server import build_grpc_server
 from kubekarma.controlleroperator import get_results_publisher
-from kubekarma.shared.crd.networktestsuite import NetworkTestSuiteCRD
+from kubekarma.controlleroperator.kinds.networktestsuite import NetworkTestSuite
 from kubekarma.controlleroperator.httpserver import get_threaded_server
 from kubernetes import client
 
@@ -25,18 +22,6 @@ root_logger = logging.getLogger()
 root_logger.setLevel(logging.DEBUG)
 
 controller_engine = ControllerEngine()
-
-
-class NetworkTestSuite(TestSuiteKindBase):
-    kind = "NetworkTestSuite"
-    api_plural = 'networktestsuites'
-    crd_validator = NetworkTestSuiteCRD
-
-
-crd_network_policy_tes_suite_handler = NetworkTestSuite(
-    publisher=get_results_publisher(),
-    controller_engine=controller_engine
-)
 
 
 # I need to share the memory space between the kopf process and the http server
@@ -92,14 +77,19 @@ def get_current_timestamp(**kwargs: Any) -> str:
 
 
 # Register the NetworkTestSuite CRD
+network_test_suite = NetworkTestSuite(
+    publisher=get_results_publisher(),
+    controller_engine=controller_engine
+)
+
 args = (
     config.API_GROUP,
     config.API_VERSION,
-    crd_network_policy_tes_suite_handler.api_plural
+    network_test_suite.api_plural
 )
 
-(kopf.on.create(*args)(crd_network_policy_tes_suite_handler.handle_create))
-(kopf.on.update(*args)(crd_network_policy_tes_suite_handler.handle_update))
-(kopf.on.delete(*args)(crd_network_policy_tes_suite_handler.handle_delete))
-(kopf.on.resume(*args)(crd_network_policy_tes_suite_handler.handle_resume_controller_restart)) # noqa
-(kopf.on.field(*args, field='spec.suspend')(crd_network_policy_tes_suite_handler.handle_suspend)) # noqa
+(kopf.on.create(*args)(network_test_suite.handle_create))
+(kopf.on.update(*args)(network_test_suite.handle_update))
+(kopf.on.delete(*args)(network_test_suite.handle_delete))
+(kopf.on.resume(*args)(network_test_suite.handle_resume_controller_restart)) # noqa
+(kopf.on.field(*args, field='spec.suspend')(network_test_suite.handle_suspend)) # noqa
