@@ -2,6 +2,11 @@ name: ci
 
 on: [push]
 
+
+env:
+  DOCKER_OPERATOR_LATEST_TAG: ${{ vars.DOCKER_REPOSITORY }}:operator-latest
+  DOCKER_WORKER_LATEST_TAG: ${{ vars.DOCKER_REPOSITORY }}:worker-latest
+
 jobs:
   run-tests:
     name: Run python validations
@@ -31,15 +36,20 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build operator image
+      - name: "Docker: build operator image"
         uses: docker/build-push-action@v5
         with:
           push: false
-          tags: ${{ vars.DOCKER_REPOSITORY }}:operator-latest
+          load: true
+          tags: ${{ env.DOCKER_OPERATOR_LATEST_TAG }}
           file: ./operator.Dockerfile
-      - name: Build worker image
+      - name: "Docker: test operator image"
+        run: docker run --rm ${{ env.DOCKER_OPERATOR_LATEST_TAG }} --help
+      - name: "Docker: build worker image"
         uses: docker/build-push-action@v5
         with:
           push: false
-          tags: ${{ vars.DOCKER_REPOSITORY }}:worker-latest
+          tags: ${{ env.DOCKER_WORKER_LATEST_TAG }}
           file: ./worker.Dockerfile
+      - name: "Docker: test worker image"
+        run: docker run --rm ${{ env.DOCKER_OPERATOR_LATEST_TAG }} --help
