@@ -57,8 +57,8 @@ jobs:
         labels: ${{ steps.meta-operator.outputs.labels }}
         file: ./operator.Dockerfile
     - name: "Docker: test operator image"
-      run: docker run --rm ${{ steps.meta-operator.outputs.tags[0] }} --help
-#      run: echo "$"
+#      run: docker run --rm ${{ steps.meta-operator.outputs.tags[0] }} --help
+      run: echo "${{ steps.meta-operator.outputs.tags[0] }} 8 ${{ steps.meta-operator.outputs.tags }}"
 
     # Now is the turn of the worker image
 
