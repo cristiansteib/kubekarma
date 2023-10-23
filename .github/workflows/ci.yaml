@@ -6,6 +6,8 @@ on: [push]
 env:
   DOCKER_OPERATOR_LATEST_TAG: ${{ vars.DOCKER_REPOSITORY }}:operator-latest
   DOCKER_WORKER_LATEST_TAG: ${{ vars.DOCKER_REPOSITORY }}:worker-latest
+  DOCKER_OPERATOR_BRANCH_TAG: ${{ vars.DOCKER_REPOSITORY }}:operator-${{ github.ref }}
+  DOCKER_WORKER_BRANCH_TAG: ${{ vars.DOCKER_REPOSITORY }}:worker-${{ github.ref }}
 
 jobs:
   run-tests:
@@ -29,11 +31,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: name/app
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -43,21 +40,34 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: "Docker: metadata-action for operator"
+        id: meta-operator
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_OPERATOR_BRANCH_TAG }}
       - name: "Docker: build operator image"
         uses: docker/build-push-action@v5
         with:
           push: false
           load: true
-          tags: ${{ env.DOCKER_OPERATOR_LATEST_TAG }}
+          tags: ${{ steps.meta-operator.outputs.tags }}
+          labels: ${{ steps.meta-operator.outputs.labels }}
           file: ./operator.Dockerfile
       - name: "Docker: test operator image"
         run: docker run --rm ${{ env.DOCKER_OPERATOR_LATEST_TAG }} --help
+      - name: "Docker: metadata-action for worker"
+        id: meta-worker
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_WORKER_BRANCH_TAG }}
       - name: "Docker: build worker image"
         uses: docker/build-push-action@v5
         with:
           push: false
           load: true
-          tags: ${{ env.DOCKER_WORKER_LATEST_TAG }}
+          tags: ${{ steps.meta-worker.outputs.tags }}
+          labels: ${{ steps.meta-worker.outputs.labels }}
           file: ./worker.Dockerfile
       - name: "Docker: test worker image"
         run: docker run --rm ${{ env.DOCKER_WORKER_LATEST_TAG }} --help
