@@ -1,13 +1,27 @@
 name: ci
 
-on: [push]
-
+on:
+  push:
+    branches:
+      - '*'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - 'master'
 
 env:
   OPERATOR_REPOSITORY: ${{ vars.DOCKER_OPERATOR_REPOSITORY }}
   WORKER_REPOSITORY: ${{ vars.DOCKER_WORKER_REPOSITORY }}
 
 jobs:
+  call-wf-docker-iamges:
+    uses: ./.github/workflows/workflow-docker-images.yaml
+    with:
+      username: ${{ vars.DOCKERHUB_USERNAME }}
+      secrets:
+        token: ${{ secrets.DOCKERHUB_TOKEN }}
+
   run-tests:
     name: Run python validations
     runs-on: ubuntu-latest
@@ -72,3 +86,20 @@ jobs:
           file: ./worker.Dockerfile
       - name: "Docker: test worker image"
         run: docker run --rm ${{ env.DOCKER_WORKER_LATEST_TAG }} --help
+
+#      - name: "Docker: publish worker image"
+#        uses: docker/build-push-action@v5
+#        with:
+#          push: ${{ github.event_name != 'pull_request' }}
+#          load: true
+#          tags: ${{ steps.meta-worker.outputs.tags }}
+#          labels: ${{ steps.meta-worker.outputs.labels }}
+#          file: ./worker.Dockerfile
+#      - name: "Docker: publish operator image"
+#        uses: docker/build-push-action@v5
+#        with:
+#          push: ${{ github.event_name != 'pull_request' }}
+#          load: true
+#          tags: ${{ steps.meta-operator.outputs.tags }}
+#          labels: ${{ steps.meta-operator.outputs.labels }}
+#          file: ./operator.Dockerfile
