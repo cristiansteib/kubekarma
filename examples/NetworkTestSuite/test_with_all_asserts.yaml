@@ -10,7 +10,7 @@ spec:
       testExactDestination:
         destinationIP: 192.168.1.100
         port: 80
-        expectSuccess: true
+        expectSuccess: false
     - name: database-access
       testExactDestination:
         destinationIP: 10.0.0.50

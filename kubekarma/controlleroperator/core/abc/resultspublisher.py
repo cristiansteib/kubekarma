@@ -19,9 +19,11 @@ class IResultsSubscriber(Generic[T], ABC):
     def __hash__(self):
         return hash(id(self))
 
-    @abstractmethod
-    def __del__(self):
-        """Delete the subscriber."""
+    def on_delete(self):
+        """Perform the required stuff on deletion.
+
+        A hook method called when the __publisher removes this subscriber.
+        """
 
 
 class ITestResultsPublisher(ABC):

@@ -27,9 +27,23 @@ class SchedulerThread(threading.Thread):
         self.daemon = True
         self.__stop = False
 
-    def enterabs(self, a_time, priority, action, argument=(), kwargs={}):
-        self.__scheduler.enterabs(a_time, priority, action, argument, kwargs)
+    def enterabs(
+            self,
+            a_time,
+            priority,
+            action,
+            argument=(),
+            kwargs={}
+    ) -> sched.Event:
+        event = self.__scheduler.enterabs(
+            a_time,
+            priority,
+            action,
+            argument,
+            kwargs
+        )
         self.__event.set()
+        return event
 
     def run(self):
         logger.info("Starting __scheduler thread.")

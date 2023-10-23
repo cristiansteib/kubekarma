@@ -2,11 +2,14 @@ import contextvars
 import dataclasses
 
 import kopf
+from kopf import Body
 from kopf._cogs.structs import bodies
 from kubernetes import client
-from kubernetes.client import ApiClient
+from kubernetes.client import ApiClient, V1CronJob
 
 from kubekarma.controlleroperator.config import config
+from kubekarma.controlleroperator.core.testsuite.types import \
+    TestSuiteStatusType
 from kubekarma.shared.crd.genericcrd import CRDTestExecutionStatus, \
     CRDTestPhase
 import logging
@@ -42,12 +45,26 @@ class CRD:
         if not self.metadata_name:
             raise ValueError("metadata_name is required")
         if not self.cron_job_name:
-            raise ValueError("cron_job_name is required")
+            raise ValueError("worker_task_id is required")
         if not self.worker_task_id:
             raise ValueError("worker_task_id is required")
         if not self.plural:
             raise ValueError("plural is required")
 
+    @classmethod
+    def from_body(cls, body: Body, plural: str) -> "CRD":
+        """Create a CRD instance from a body."""
+        return cls(
+            namespace=body["metadata"]["namespace"],
+            metadata_name=body["metadata"]["name"],
+            cron_job_name=body["metadata"]["annotations"][
+                cls.__get_key("cronjob")
+            ],
+            worker_task_id=body["metadata"]["annotations"][
+                cls.__get_key("worker-task-id")
+            ],
+            plural=plural,
+        )
 
 
 class CRDInstanceManager:
@@ -110,18 +127,29 @@ class CRDInstanceManager:
             type="Error"
         )
 
-    def patch_crd(self, patch: dict):
+    def _patch_crd(self, patch: dict):
         """Patch the CRD with the given patch."""
         client.CustomObjectsApi(
             api_client=self.api_client
         ).patch_namespaced_custom_object(
-            group="kubekarma.io",
-            version="v1",
+            group=config.API_GROUP,
+            version=config.API_VERSION,
             namespace=self.crd_data.namespace,
             plural=self.crd_data.plural,
             name=self.crd_data.metadata_name,
             body=patch
         )
+
+    def set_test_suite_result_status(self, status: TestSuiteStatusType):
+        """Set the status of the test execution.
+
+        This method set the .status of the CRD with the information related
+        to the test execution.
+        """
+        patch = {
+            "status": status
+        }
+        self._patch_crd(patch=patch)
 
     def set_phase_to_active(self):
         """Set the status of the CRD to Active."""
@@ -162,16 +190,43 @@ class CRDInstanceManager:
             patch["status"]["testExecutionStatus"] = (
                 CRDTestExecutionStatus.Pending.value
             )
-        self.patch_crd(patch=patch)
+        self._patch_crd(patch=patch)
 
     def save(self):
         """Save the state of the CRD ctx instance."""
         # validate all properties are defined
         self.crd_data.validate()
-        self.patch_crd(
+        self._patch_crd(
             patch={
                 "metadata": {
                     "annotations": self.crd_data.generate_annotations()
                 }
             }
+        )
+
+    def set_cronjob_suspend(self, suspend: bool):
+        """Suspend the cronjob."""
+        job_name = self.crd_data.cron_job_name
+        logger.info(f"Suspending cronjob {job_name}")
+        client.BatchV1Api(
+            api_client=self.api_client
+        ).patch_namespaced_cron_job(
+            name=job_name,
+            namespace=self.crd_data.namespace,
+            body={
+                "spec": {
+                    "suspend": suspend
+                }
+            }
+        )
+
+    def create_cron_job(
+        self,
+        cron_job: V1CronJob
+    ) -> V1CronJob:
+        return client.BatchV1Api(
+            api_client=self.api_client
+        ).create_namespaced_cron_job(
+            namespace=self.crd_data.namespace,
+            body=cron_job
         )

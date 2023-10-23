@@ -65,8 +65,6 @@ class TestSuiteStatusTracker:
             current_execution_time: str
     ) -> str:
         """Return the last succeeded time."""
-        logger.info("current_status: %s", current_status)
-        logger.info("latest status: %s", self.latest_status)
         if CRDTestExecutionStatus.Succeeding is current_status:
             return current_execution_time
         if self.latest_status is None:
