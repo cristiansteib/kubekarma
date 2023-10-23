@@ -57,8 +57,7 @@ jobs:
         labels: ${{ steps.meta-operator.outputs.labels }}
         file: ./operator.Dockerfile
     - name: "Docker: test operator image"
-#      run: docker run --rm ${{ steps.meta-operator.outputs.tags[0] }} --help
-      run: echo "${{ steps.meta-operator.outputs.tags[0] }} 8 ${{ steps.meta-operator.outputs.tags }}"
+      run: docker run --rm ${{ steps.meta-operator.outputs.tags }} --help
 
     # Now is the turn of the worker image
 
@@ -79,4 +78,4 @@ jobs:
         labels: ${{ steps.meta-worker.outputs.labels }}
         file: ./worker.Dockerfile
     - name: "Docker: test worker image"
-      run: docker run --rm ${{ steps.meta-worker.outputs.tags[0] }} --help
+      run: docker run --rm ${{ steps.meta-worker.outputs.tags }} --help
