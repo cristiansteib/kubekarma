@@ -21,9 +21,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Build and push
+        name: Build operator image
         uses: docker/build-push-action@v5
         with:
           push: false
-          tags: ${{ DOCKER_REPOSITORY }}:operator-latest
+          tags: $DOCKER_REPOSITORY:operator-latest
           file: ./operator.Dockerfile
