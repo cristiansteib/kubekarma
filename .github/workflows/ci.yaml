@@ -37,6 +37,7 @@ jobs:
       username: ${{ vars.DOCKERHUB_USERNAME }}
       operator_repository: ${{ vars.DOCKER_OPERATOR_REPOSITORY }}
       worker_repository: ${{ vars.DOCKER_WORKER_REPOSITORY }}
+      push: false
     secrets:
       token: ${{ secrets.DOCKERHUB_TOKEN }}
 #      - name: "Docker: publish worker image"

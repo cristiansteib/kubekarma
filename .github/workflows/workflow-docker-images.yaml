@@ -3,6 +3,10 @@ name: Docker images
 on:
   workflow_call:
     inputs:
+      push:
+        required: true
+        type: boolean
+        description: 'Push images to Docker Hub'
       username:
         required: true
         type: string
@@ -22,6 +26,7 @@ on:
 
 jobs:
   triage:
+    name: "Docker: Build & Test and maybe Push"
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -52,7 +57,7 @@ jobs:
         labels: ${{ steps.meta-operator.outputs.labels }}
         file: ./operator.Dockerfile
     - name: "Docker: test operator image"
-      run: docker run --rm ${{ inputs.operator_repository }} --help
+      run: docker run --rm $${{ steps.meta-operator.outputs.tags[0] }} --help
 
     # Now is the turn of the worker image
 
@@ -73,4 +78,4 @@ jobs:
         labels: ${{ steps.meta-worker.outputs.labels }}
         file: ./worker.Dockerfile
     - name: "Docker: test worker image"
-      run: docker run --rm ${{ inputs.worker_repository }} --help
+      run: docker run --rm ${{ steps.meta-worker.outputs.tags[0] }} --help
