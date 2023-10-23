@@ -25,5 +25,5 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: false
-          tags: ${{ variable.DOCKERHUB_TOKEN }}:operator-latest
+          tags: ${{ DOCKER_REPOSITORY }}:operator-latest
           file: ./operator.Dockerfile
