@@ -2,7 +2,7 @@
 
 ## Phases of Test Suite
 
-A specific instance of Test Suite (like [`NetworkTestSuite`](../chart/crds/NetworkTestSuite.yaml)) can be in the following phases:
+A specific instance of Test Suite (like [`NetworkTestSuite`](../charts/kubekarma/crds/NetworkTestSuite.yaml)) can be in the following phases:
 
 
 |   phase   | description                                                   | 

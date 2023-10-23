@@ -12,7 +12,7 @@ manifests:
   helm:
     releases:
       - name: kubekarmar
-        chartPath: chart
+        chartPath: charts/kubekarma
         valuesFiles:
           - dev/values.yaml
 deploy:
@@ -23,11 +23,11 @@ deploy:
             command: ["kubectl", "apply", "-f", "dev/namespace.yaml"]
         # Clean the environment before performing the deployment
         - host:
-            command: [ "kubectl", "delete", "-f", "chart/crds/NetworkTestSuite.yaml", "--ignore-not-found=true" ]
+            command: [ "kubectl", "delete", "-f", "charts/kubekarma/crds/NetworkTestSuite.yaml", "--ignore-not-found=true" ]
         - host:
             command: [ "sleep", "1" ]
         - host:
-            command: ["kubectl", "apply", "-f", "chart/crds/NetworkTestSuite.yaml"]
+            command: ["kubectl", "apply", "-f", "charts/kubekarma/crds/NetworkTestSuite.yaml"]
         - host:
             command: [ "kubectl", "delete", "networktestsuite/an-example-of-all-asserts", "--ignore-not-found=true", "--namespace=another-namespace" ]
         - host:
