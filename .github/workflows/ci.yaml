@@ -52,4 +52,4 @@ jobs:
           tags: ${{ env.DOCKER_WORKER_LATEST_TAG }}
           file: ./worker.Dockerfile
       - name: "Docker: test worker image"
-        run: docker run --rm ${{ env.DOCKER_OPERATOR_LATEST_TAG }} --help
+        run: docker run --rm ${{ env.DOCKER_WORKER_LATEST_TAG }} --help
