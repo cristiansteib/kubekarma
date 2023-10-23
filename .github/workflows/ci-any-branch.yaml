@@ -4,32 +4,11 @@ on:
   push:
     branches:
       - '*'
-    tags:
-      - 'v*'
-  pull_request:
-    branches:
-      - 'master'
-
-env:
-  OPERATOR_REPOSITORY: ${{ vars.DOCKER_OPERATOR_REPOSITORY }}
-  WORKER_REPOSITORY: ${{ vars.DOCKER_WORKER_REPOSITORY }}
 
 jobs:
-  run-tests:
-    name: Run python validations
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    - name: Install tox and any other packages
-      run: pip install tox
-    - name: Run import linter
-      run: tox -e lint-imports
-    - name: Run test worker
-      run: tox -e test-worker
+  python-checks:
+    uses: ./.github/workflows/workflow-python-checks.yaml
+    name: Python Checks
   docker-images:
     uses: ./.github/workflows/workflow-docker-images.yaml
     name: Docker images
