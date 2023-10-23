@@ -27,6 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     name: Build docker images
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: name/app
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -49,6 +56,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: false
+          load: true
           tags: ${{ env.DOCKER_WORKER_LATEST_TAG }}
           file: ./worker.Dockerfile
       - name: "Docker: test worker image"
