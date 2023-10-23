@@ -1,10 +1,10 @@
-name: Python package
+name: ci
 
 on: [push]
 
 jobs:
   run-tests:
-    name: Run tests
+    name: Run python validations
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
