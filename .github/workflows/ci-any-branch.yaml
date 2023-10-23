@@ -40,19 +40,3 @@ jobs:
       push: false
     secrets:
       token: ${{ secrets.DOCKERHUB_TOKEN }}
-#      - name: "Docker: publish worker image"
-#        uses: docker/build-push-action@v5
-#        with:
-#          push: ${{ github.event_name != 'pull_request' }}
-#          load: true
-#          tags: ${{ steps.meta-worker.outputs.tags }}
-#          labels: ${{ steps.meta-worker.outputs.labels }}
-#          file: ./worker.Dockerfile
-#      - name: "Docker: publish operator image"
-#        uses: docker/build-push-action@v5
-#        with:
-#          push: ${{ github.event_name != 'pull_request' }}
-#          load: true
-#          tags: ${{ steps.meta-operator.outputs.tags }}
-#          labels: ${{ steps.meta-operator.outputs.labels }}
-#          file: ./operator.Dockerfile

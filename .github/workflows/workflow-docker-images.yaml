@@ -48,6 +48,10 @@ jobs:
         labels: |
           org.opencontainers.image.title=KubeKarma Operator
           org.opencontainers.image.url=https://github.com/cristiansteib/kubekarma/blob/${{ github.sha }}/operator.Dockerfile
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
     - name: "Docker: build operator image"
       uses: docker/build-push-action@v5
       with:
@@ -79,3 +83,21 @@ jobs:
         file: ./worker.Dockerfile
     - name: "Docker: test worker image"
       run: docker run --rm ${{ steps.meta-worker.outputs.tags }} --help
+
+    # now push if requested
+    - name: "Docker: publish worker image"
+      uses: docker/build-push-action@v5
+      with:
+        push: ${{ inputs.push }}
+        load: true
+        tags: ${{ steps.meta-worker.outputs.tags }}
+        labels: ${{ steps.meta-worker.outputs.labels }}
+        file: ./worker.Dockerfile
+    - name: "Docker: publish operator image"
+      uses: docker/build-push-action@v5
+      with:
+        push: ${{ inputs.push }}
+        load: true
+        tags: ${{ steps.meta-operator.outputs.tags }}
+        labels: ${{ steps.meta-operator.outputs.labels }}
+        file: ./operator.Dockerfile
