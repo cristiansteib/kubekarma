@@ -7,6 +7,14 @@ on:
         required: true
         type: string
         description: 'Docker Hub username'
+      operator_repository:
+        required: true
+        type: string
+        description: 'Docker Hub repository for operator image'
+      worker_repository:
+        required: true
+        type: string
+        description: 'Docker Hub repository for worker image'
     secrets:
       token:
         required: true
@@ -27,3 +35,42 @@ jobs:
       with:
         username: ${{ inputs.username }}
         password: ${{ secrets.token }}
+    - name: "Docker: metadata-action for operator"
+      id: meta-operator
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.OPERATOR_REPOSITORY }}
+        labels: |
+          org.opencontainers.image.title=KubeKarma Operator
+          org.opencontainers.image.url=https://github.com/cristiansteib/kubekarma/blob/${{ github.sha }}/operator.Dockerfile
+    - name: "Docker: build operator image"
+      uses: docker/build-push-action@v5
+      with:
+        push: false
+        load: true
+        tags: ${{ steps.meta-operator.outputs.tags }}
+        labels: ${{ steps.meta-operator.outputs.labels }}
+        file: ./operator.Dockerfile
+    - name: "Docker: test operator image"
+      run: docker run --rm ${{ inputs.operator_repository }} --help
+
+    # Now is the turn of the worker image
+
+    - name: "Docker: metadata-action for worker"
+      id: meta-worker
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.WORKER_REPOSITORY }}
+        labels: |
+          org.opencontainers.image.title=KubeKarma 
+          org.opencontainers.image.url=https://github.com/cristiansteib/kubekarma/blob/${{ github.sha }}/worker.Dockerfile
+    - name: "Docker: build worker image"
+      uses: docker/build-push-action@v5
+      with:
+        push: false
+        load: true
+        tags: ${{ steps.meta-worker.outputs.tags }}
+        labels: ${{ steps.meta-worker.outputs.labels }}
+        file: ./worker.Dockerfile
+    - name: "Docker: test worker image"
+      run: docker run --rm ${{ inputs.worker_repository }} --help
