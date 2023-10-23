@@ -44,6 +44,9 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.OPERATOR_REPOSITORY }}
+          labels: |
+            org.opencontainers.image.title=KubeKarma Operator
+            org.opencontainers.image.url=https://github.com/cristiansteib/kubekarma/blob/${{ github.sha }}/operator.Dockerfile
       - name: "Docker: build operator image"
         uses: docker/build-push-action@v5
         with:
