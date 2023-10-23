@@ -34,6 +34,32 @@ normal circumstances.
 - [Docker](https://www.docker.com/)
 - [Python](https://www.python.org/)
 
+## Usage
+
+[Helm](https://helm.sh) must be installed to use the charts.  Please refer to
+Helm's [documentation](https://helm.sh/docs) to get started.
+
+Once Helm has been set up correctly, add the repo as follows:
+
+```shell
+  helm repo add kubekarma-repo https://cristiansteib.github.io/kubekarma/
+```
+
+If you had already added this repo earlier, run `helm repo update` to retrieve
+the latest versions of the packages.  You can then run `helm search repo
+kubekarma` to see the charts.
+
+To install the `kubekarma` operator chart:
+
+```shell
+    helm install kubekarma kubekarma-repo/kubekarma
+```
+
+To uninstall the chart:
+```shell
+    helm delete kubekarma
+```
+
 
 ## Development
 
