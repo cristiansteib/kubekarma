@@ -19,8 +19,7 @@ jobs:
     uses: ./.github/workflows/workflow-docker-images.yaml
     with:
       username: ${{ vars.DOCKERHUB_USERNAME }}
-      secrets:
-        token: ${{ secrets.DOCKERHUB_TOKEN }}
+      token: ${{ secrets.DOCKERHUB_TOKEN }}
 
   run-tests:
     name: Run python validations
