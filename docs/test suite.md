@@ -2,7 +2,7 @@
 
 ## Phases of Test Suite
 
-A specific instance of Test Suite (like [`NetworkTestSuite`](../chart/crds/NetworkTestSuite.yaml)) can be in the following phases:
+A specific instance of Test Suite (like [`NetworkTestSuite`](../charts/kubekarma/crds/NetworkTestSuite.yaml)) can be in the following phases:
 
 
 |   phase   | description                                                   | 
@@ -45,3 +45,4 @@ The status of each test case can be in one of the following steps:
 Further details could be available in the `status.testCases[*].error` field.
 
 
+## How to define a new TestSuite kind?

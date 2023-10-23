@@ -8,9 +8,13 @@ from kubekarma.controlleroperator.core.controllerengine import (
     ControllerEngine
 )
 from kubekarma.controlleroperator.config import config
+from kubekarma.controlleroperator.core.testsuite.lifecyclehandler import \
+    ControllerCRDLifecycleHandler
+from kubekarma.controlleroperator.core.testsuite.controllercrdvalidator import \
+    ControllerCRDValidator
 from kubekarma.controlleroperator.grpcsrv.server import build_grpc_server
-from kubekarma.controlleroperator import get_results_publisher
-from kubekarma.controlleroperator.kinds.networktestsuite import NetworkTestSuite
+from kubekarma.controlleroperator.kinds.networktestsuite import \
+    NetworkTestSuite, NetworkTestSuiteCrdValidator
 from kubekarma.controlleroperator.httpserver import get_threaded_server
 from kubernetes import client
 
@@ -25,7 +29,7 @@ controller_engine = ControllerEngine()
 
 
 # I need to share the memory space between the kopf process and the http server
-# because the http server needs the publisher instance to notify the results.
+# because the http server needs the __publisher instance to notify the results.
 http_server_thread = get_threaded_server(http_host="0.0.0.0")
 grpc_server = build_grpc_server("[::]:8080")
 
@@ -48,6 +52,7 @@ def configure(settings: kopf.OperatorSettings, **_):
     settings.execution.max_workers = 8
     settings.watching.connect_timeout = 1 * 60
     settings.watching.server_timeout = 5 * 60
+    settings.persistence.finalizer = config.API_GROUP + "/finalizer"
 
 
 @kopf.on.startup()
@@ -78,7 +83,6 @@ def get_current_timestamp(**kwargs: Any) -> str:
 
 # Register the NetworkTestSuite CRD
 network_test_suite = NetworkTestSuite(
-    publisher=get_results_publisher(),
     controller_engine=controller_engine
 )
 
@@ -88,8 +92,24 @@ args = (
     network_test_suite.api_plural
 )
 
-(kopf.on.create(*args)(network_test_suite.handle_create))
-(kopf.on.update(*args)(network_test_suite.handle_update))
-(kopf.on.delete(*args)(network_test_suite.handle_delete))
-(kopf.on.resume(*args)(network_test_suite.handle_resume_controller_restart)) # noqa
-(kopf.on.field(*args, field='spec.suspend')(network_test_suite.handle_suspend)) # noqa
+handlers = ControllerCRDLifecycleHandler(
+    kind=network_test_suite.kind,
+    api_plural=network_test_suite.api_plural,
+    controller_engine=controller_engine,
+    controller_crd_validator=ControllerCRDValidator(
+        NetworkTestSuiteCrdValidator()
+    ),
+    test_suite_kind=network_test_suite
+)
+
+
+(kopf.on.create(*args)(handlers.handle_create))
+(kopf.on.delete(*args)(handlers.handle_delete))
+(kopf.on.resume(*args)(handlers.handle_resume_controller_restart)) # noqa
+(kopf.on.field(
+    *args,
+    field='spec.suspend',
+    # Avoid call this handler when the CRD is created
+    when=lambda reason, **_: reason is not kopf.Reason.CREATE
+)(handlers.handle_suspend)) # noqa
+(kopf.on.update(*args)(handlers.handle_update))

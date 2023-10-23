@@ -1,3 +1,4 @@
+import sched
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -10,6 +11,8 @@ from kubekarma.controlleroperator.core.controllerengine import \
 
 import logging
 
+from kubekarma.controlleroperator.core.crdinstancemanager import \
+    CRDInstanceManager
 from kubekarma.shared.loghelper import PrefixFilter
 
 logger = logging.getLogger(__name__)
@@ -27,20 +30,27 @@ class ResultsDeadlineValidator(IResultsSubscriber):
     def __init__(
             self,
             schedule: str,
-            cron_job_name: str,
+            worker_task_id: str,
             controller_engine: ControllerEngine,
+            crd_manager: CRDInstanceManager,
             time_execution_estimation: timedelta = timedelta(minutes=1)
     ):
+        self.crd_manager = crd_manager
         self.time_execution_estimation = time_execution_estimation
         self.controller_engine = controller_engine
-        self.cron_job_name = cron_job_name
+        self.worker_task_id = worker_task_id
         self._croniter = croniter(
             schedule,
             datetime.now()
         )
         self.__expected_time_to_receive_results: Optional[datetime] = None
         self.__last_time_received_results: Optional[datetime] = None
+        self.__next_sched_event: Optional[sched.Event] = None
         self.__set_next_time_to_receive_results()
+
+        # PRINT THE STACK TRACE AT THIS POINT
+        import traceback
+        traceback.print_stack()
 
     def mark_results_received(self, received_at: datetime):
         """Mark the results as received."""
@@ -50,15 +60,15 @@ class ResultsDeadlineValidator(IResultsSubscriber):
         self.__expected_time_to_receive_results = (
             self._get_next_time_to_receive_results()
         )
-        logger.debug(
-            "Next scheduled assert for CronJob %s at %s",
-            self.cron_job_name,
-            self.__expected_time_to_receive_results,
-        )
-        self.controller_engine.scheduler.enterabs(
+        self.__next_sched_event = self.controller_engine.scheduler.enterabs(
             self.__expected_time_to_receive_results.timestamp(),
             1,
             self.__assert_if_response_was_received
+        )
+        logger.debug(
+            "Next control at %s for %s",
+            self.__expected_time_to_receive_results.isoformat(),
+            self.worker_task_id,
         )
 
     def _get_next_time_to_receive_results(self) -> datetime:
@@ -75,22 +85,19 @@ class ResultsDeadlineValidator(IResultsSubscriber):
         # Based on the last time the results were received, we can assert
         # if the response was received or not.
         logger.debug(
-            "CronJob <%s> assert if response was received",
-            self.cron_job_name
+            "Running control for %s",
+            self.worker_task_id
         )
+
         if not self.__last_time_received_results:
             logger.error(
-                "No response received for the CronJob <%s>",
-                self.cron_job_name
+                "No response received for task %s",
+                self.worker_task_id
             )
-            # self.crd_manager.error_event(
-            #     reason="No response received",
-            #     message=(
-            #         "The test suite did not send any response. "
-            #         "Please check the logs of the test suite."
-            #     )
-            # )
-            #
+            self.crd_manager.error_event(
+                "NoResultsReceived",
+                "No response received for task"
+            )
             self.__set_next_time_to_receive_results()
             return
 
@@ -99,16 +106,14 @@ class ResultsDeadlineValidator(IResultsSubscriber):
             datetime.now() - self.__last_time_received_results
         )
         if time_since_last_response > timedelta(minutes=5):
-            logger.debug(
-                "happened too much time since the "
-                "last response for the CronJob <%s>, time <%s>",
-                self.cron_job_name,
-                time_since_last_response
+            logger.warning(
+                "Happened too much time since the last response for %s . "
+                "Hint: review the time estimation of the test suite.",
+                self.worker_task_id
             )
-
         logger.debug(
-            "Response received for the CronJob <%s>",
-            self.cron_job_name
+            "Successful verification for task %s",
+            self.worker_task_id
         )
         self.__last_time_received_results = None
         self.__set_next_time_to_receive_results()
@@ -120,6 +125,17 @@ class ResultsDeadlineValidator(IResultsSubscriber):
             )
         )
 
-    def __del__(self):
-        # TODO; cancel the scheduled event
-        pass
+    def on_delete(self):
+        # Cancel de scheduled event
+        if self.__next_sched_event is not None:
+            logger.debug("class id %s", id(self))
+            logger.info(
+                "Canceling next scheduled control for task %s",
+                self.worker_task_id
+            )
+            self.controller_engine.scheduler.cancel(self.__next_sched_event)
+        else:
+            logger.debug(
+                "No scheduled a next control for task %s",
+                self.worker_task_id
+            )
