@@ -6,8 +6,8 @@ on: [push]
 env:
   DOCKER_OPERATOR_LATEST_TAG: ${{ vars.DOCKER_REPOSITORY }}:operator-latest
   DOCKER_WORKER_LATEST_TAG: ${{ vars.DOCKER_REPOSITORY }}:worker-latest
-  DOCKER_OPERATOR_BRANCH_TAG: ${{ vars.DOCKER_REPOSITORY }}:operator-${{ github.ref }}
-  DOCKER_WORKER_BRANCH_TAG: ${{ vars.DOCKER_REPOSITORY }}:worker-${{ github.ref }}
+  DOCKER_OPERATOR_BRANCH_TAG: ${{ vars.DOCKER_REPOSITORY }}:operator-${{ github.ref_name }}
+  DOCKER_WORKER_BRANCH_TAG: ${{ vars.DOCKER_REPOSITORY }}:worker-${{ github.ref_name }}
 
 jobs:
   run-tests:
