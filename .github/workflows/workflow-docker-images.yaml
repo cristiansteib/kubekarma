@@ -39,7 +39,7 @@ jobs:
       id: meta-operator
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.OPERATOR_REPOSITORY }}
+        images: ${{ inputs.operator_repository }}
         labels: |
           org.opencontainers.image.title=KubeKarma Operator
           org.opencontainers.image.url=https://github.com/cristiansteib/kubekarma/blob/${{ github.sha }}/operator.Dockerfile
@@ -60,7 +60,7 @@ jobs:
       id: meta-worker
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.WORKER_REPOSITORY }}
+        images: ${{ inputs.worker_repository }}
         labels: |
           org.opencontainers.image.title=KubeKarma 
           org.opencontainers.image.url=https://github.com/cristiansteib/kubekarma/blob/${{ github.sha }}/worker.Dockerfile
