@@ -4,10 +4,8 @@ on: [push]
 
 
 env:
-  DOCKER_OPERATOR_LATEST_TAG: ${{ vars.DOCKER_REPOSITORY }}:operator-latest
-  DOCKER_WORKER_LATEST_TAG: ${{ vars.DOCKER_REPOSITORY }}:worker-latest
-  DOCKER_OPERATOR_BRANCH_TAG: ${{ vars.DOCKER_REPOSITORY }}:operator-${{ github.ref_name }}
-  DOCKER_WORKER_BRANCH_TAG: ${{ vars.DOCKER_REPOSITORY }}:worker-${{ github.ref_name }}
+  OPERATOR_REPOSITORY: ${{ vars.DOCKER_OPERATOR_REPOSITORY }}
+  WORKER_REPOSITORY: ${{ vars.DOCKER_WORKER_REPOSITORY }}
 
 jobs:
   run-tests:
@@ -45,7 +43,7 @@ jobs:
         id: meta-operator
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_OPERATOR_BRANCH_TAG }}
+          images: ${{ env.OPERATOR_REPOSITORY }}
       - name: "Docker: build operator image"
         uses: docker/build-push-action@v5
         with:
@@ -60,7 +58,7 @@ jobs:
         id: meta-worker
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_WORKER_BRANCH_TAG }}
+          images: ${{ env.WORKER_REPOSITORY }}
       - name: "Docker: build worker image"
         uses: docker/build-push-action@v5
         with:
