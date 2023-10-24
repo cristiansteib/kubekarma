@@ -1,9 +1,11 @@
-name: Python package
+name: Python Checks
 
-on: [push]
+on:
+  workflow_call:
 
 jobs:
   run-tests:
+    name: Run python validations
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
