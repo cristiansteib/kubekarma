@@ -1,0 +1,23 @@
+name: Tags CI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  python-checks:
+    uses: ./.github/workflows/workflow-python-checks.yaml
+    name: Python Checks
+  docker-images:
+    needs:
+      - python-checks
+    uses: ./.github/workflows/workflow-docker-images.yaml
+    name: Docker images
+    with:
+      username: ${{ vars.DOCKERHUB_USERNAME }}
+      operator_repository: ${{ vars.DOCKER_OPERATOR_REPOSITORY }}
+      worker_repository: ${{ vars.DOCKER_WORKER_REPOSITORY }}
+      push: true
+    secrets:
+      token: ${{ secrets.DOCKERHUB_TOKEN }}
