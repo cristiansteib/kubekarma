@@ -74,4 +74,7 @@ class NetworkTestSuiteCrdValidator(ICrdValidator):
 class NetworkTestSuite(TestSuiteKindBase):
     kind = "NetworkTestSuite"
     api_plural = 'networktestsuites'
-    crd_validator = NetworkTestSuiteCrdValidator
+
+    def get_crd_validator(self) -> ICrdValidator:
+        """Return the controller CRD validator."""
+        return NetworkTestSuiteCrdValidator()

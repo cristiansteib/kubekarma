@@ -1,10 +1,9 @@
-import abc
 from typing import List
 
 from kubekarma.controlleroperator.core.abc.crdvalidator import ICrdValidator
 
 
-class ControllerCRDValidator(abc.ABC):
+class ControllerCRDValidator:
     """A validator for the spec of the CRD."""
 
     def __init__(self, validator: ICrdValidator):

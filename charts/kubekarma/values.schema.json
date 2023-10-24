@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "controller": {
+      "type": "object",
+      "properties": {
+        "grpc": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer"
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "port": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "required": ["address", "port"]
+        },
+        "logLevel": {
+          "type": "string",
+          "enum": ["critical", "error", "warning", "info", "debug", "notset"],
+          "default": "info",
+            "description": "The log level to use for the controller"
+        }
+      },
+      "required": ["grpc", "logLevel"]
+    }
+  },
+  "required": ["controller"]
+}

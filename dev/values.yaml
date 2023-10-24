@@ -1,4 +1,5 @@
 workerImage:
-  repository: localhost:5000/network-policy-test-worker
   pullPolicy: IfNotPresent
-  tag: "c9b1650-dirty"
+  tag: "v0.0.1-3-g252361d-dirty"
+controller:
+  logLevel: "debug"

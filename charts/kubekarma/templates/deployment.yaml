@@ -4,6 +4,8 @@ kind: Deployment
 metadata:
   name: {{ .Release.Name }}-operator
 spec:
+  # To allow more replicas, first we need to implement in the controller the
+  # logic to avoid controller receiving reports when it is not the leader.
   replicas: 1
   selector:
     matchLabels:
@@ -27,12 +29,20 @@ spec:
           value: '{{ include "svc.headless-grpc-service-name" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.controller.grpc.port }}'
         - name: WORKER_DOCKER_IMAGE
           value: {{ .Values.workerImage.repository }}:{{ .Values.workerImage.tag }}
+        - name: LOG_LEVEL
+          value: {{ required ".controller.logLevel is required" .Values.controller.logLevel }}
         livenessProbe:
           grpc:
             port: {{ .Values.controller.grpc.port }}
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
-          grpc:
-            port: {{ .Values.controller.grpc.port }}
+          httpGet:
+            path: /healthz
+            port: 8000
+          periodSeconds: 10
           initialDelaySeconds: 5
+
+{{/*        readinessProbe:*/}}
+{{/*          grpc:*/}}
+{{/*            port: {{ .Values.controller.grpc.port }}*/}}

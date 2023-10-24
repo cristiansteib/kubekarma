@@ -5,7 +5,6 @@ from kopf import Body, Spec
 
 from kubekarma.controlleroperator.config import config
 from kubekarma.controlleroperator.core.abc.testsuitekind import ITestSuiteKind
-from kubekarma.controlleroperator.core.controllerengine import ControllerEngine
 from kubekarma.controlleroperator.core.crdinstancemanager import CRD, \
     CRDInstanceManager
 
@@ -24,22 +23,15 @@ class ControllerCRDLifecycleHandler:
 
     def __init__(
         self,
-        kind: str,
-        api_plural: str,
-        controller_engine: ControllerEngine,
-        controller_crd_validator: ControllerCRDValidator,
         test_suite_kind: ITestSuiteKind,
     ):
-        """Initialize the handler.
+        """Initialize the handler."""
 
-        Args:
-            kind: The kind of the CRD expected to be handled by this handler.
-        """
-
-        self.kind = kind
-        self.api_plural = api_plural
-        self.controller_engine = controller_engine
-        self.controller_crd_validator = controller_crd_validator
+        self.kind = test_suite_kind.kind
+        self.api_plural = test_suite_kind.api_plural
+        self.controller_crd_validator = ControllerCRDValidator(
+            validator=test_suite_kind.get_crd_validator()
+        )
         self.test_suite_kind = test_suite_kind
         self.__crds_managers: dict[str, CRDInstanceManager] = {}
 
