@@ -7,11 +7,11 @@ crd:
   shortNames:
     - npts
 image:
-  repository: steib/kubekarma-operator:latest
+  repository: steib/kubekarma-operator
   pullPolicy: IfNotPresent
   tag: "latest"
 workerImage:
-  repository: steib/kubekarma:latest
+  repository: steib/kubekarma
   pullPolicy: IfNotPresent
   tag: "latest"
 
