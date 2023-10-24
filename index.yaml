@@ -11,4 +11,14 @@ entries:
     urls:
     - https://github.com/cristiansteib/kubekarma/releases/download/kubekarma-0.0.1/kubekarma-0.0.1.tgz
     version: 0.0.1
-generated: "2023-10-24T00:43:50.188935929Z"
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2023-10-24T23:37:39.438632396Z"
+    description: An application for testing network policies
+    digest: 1115a170665b94ea848f416ad8195d539089d41eb79f1e1725d1ca0bc0fbe041
+    name: kubekarma
+    type: application
+    urls:
+    - https://github.com/cristiansteib/kubekarma/releases/download/kubekarma-0.0.1-1/kubekarma-0.0.1-1.tgz
+    version: 0.0.1-1
+generated: "2023-10-24T23:37:39.438640396Z"
