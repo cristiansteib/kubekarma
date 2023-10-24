@@ -7,11 +7,11 @@ crd:
   shortNames:
     - npts
 image:
-  repository: localhost:5000/network-policy-test-operator
+  repository: steib/kubekarma-operator:latest
   pullPolicy: IfNotPresent
   tag: "latest"
 workerImage:
-  repository: localhost:5000/network-policy-test-worker
+  repository: steib/kubekarma:latest
   pullPolicy: IfNotPresent
   tag: "latest"
 
