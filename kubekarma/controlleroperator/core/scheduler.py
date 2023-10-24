@@ -68,5 +68,8 @@ class SchedulerThread(threading.Thread):
         self.__stop = True
         self.__event.set()
 
+    def is_running(self) -> bool:
+        return not self.__stop
+
     def empty(self):
         return self.__scheduler.empty()

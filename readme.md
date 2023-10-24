@@ -70,3 +70,11 @@ skaffold dev --port-forward
 ```
 
 
+## Related 
+Here we have some tool that are related to this kind of test topic
+
+- KUTTL
+
+### For best practices
+- kubelint
+- datree

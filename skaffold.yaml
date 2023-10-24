@@ -4,7 +4,7 @@ metadata:
   name: operator-controller
 build:
   artifacts:
-    - image: localhost:5000/network-policy-test-operator
+    - image: steib/kubekarma-operator
       docker:
         dockerfile: operator.Dockerfile
 
@@ -32,6 +32,10 @@ deploy:
             command: [ "kubectl", "delete", "networktestsuite/an-example-of-all-asserts", "--ignore-not-found=true", "--namespace=another-namespace" ]
         - host:
             command: [ "kubectl", "wait", "--for=delete", "networktestsuite/an-example-of-all-asserts", "--namespace=another-namespace" ]
+        # create a few Kopf-specific custom resources in the cluster
+#         kubectl apply -f https://github.com/nolar/kopf/raw/main/peering.yaml
+  #      - host:
+   #         command: ["kubectl", "apply", "-f", "https://github.com/nolar/kopf/raw/main/peering.yaml"]
       after:
         # Wait until the operator finishes the rollout
         - host:
@@ -39,10 +43,8 @@ deploy:
         - host:
             command: [ "kubectl", "apply", "-f", "examples/NetworkTestSuite/test_with_all_asserts.yaml", "--namespace=another-namespace" ]
 
-        # create a few Kopf-specific custom resources in the cluster
-#         kubectl apply -f https://github.com/nolar/kopf/raw/main/peering.yaml
-        - host:
-            command: ["kubectl", "apply", "-f", "https://github.com/nolar/kopf/raw/main/peering.yaml"]
+
+
 
 ---
 apiVersion: skaffold/v4beta6
@@ -51,7 +53,7 @@ metadata:
   name: worker
 build:
   artifacts:
-    - image: localhost:5000/network-policy-test-worker
+    - image: steib/kubekarma
       docker:
         dockerfile: worker.Dockerfile
       hooks:

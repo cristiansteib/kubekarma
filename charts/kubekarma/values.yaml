@@ -23,3 +23,5 @@ controller:
     service:
       # @controller.grpcsrv.service.port the exposed port by the service
       port: 8080
+  # @controller.logLevel defines the default log level for the controller logs
+  logLevel: "info"

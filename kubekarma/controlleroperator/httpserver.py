@@ -2,9 +2,9 @@
 """
 import asyncio
 import threading
+from typing import Optional
 
-from fastapi import FastAPI
-from fastapi import Request, status
+from fastapi import FastAPI, Response, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -17,9 +17,13 @@ import logging
 import uvicorn
 from uvicorn.config import Config
 
+from kubekarma.controlleroperator.core.controllerengine import ControllerEngine
+
 app = FastAPI()
 
 logger = logging.getLogger(__name__)
+
+the_controller_engine: Optional[ControllerEngine] = None
 
 
 # this model should be symmetric with shared.genericcrd.TestCaseResultItem
@@ -42,7 +46,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 @app.get("/healthz")
-def healthz():
+def healthz(response: Response,  include_in_schema=False):
+    #
+    response.status_code = status.HTTP_200_OK
+    if not the_controller_engine or not the_controller_engine.is_healthy():
+        response.status_code = status.HTTP_425_TOO_EARLY
+        return {"status": "not ok"}
     return {"status": "ok"}
 
 
@@ -76,8 +85,12 @@ class ThreadedUvicorn:
 
 def get_threaded_server(
         http_host: str = "127.0.0.1",
-        http_port: int = 8000
+        http_port: int = 8000,
+        controller_engine: Optional[ControllerEngine]=None
 ) -> ThreadedUvicorn:
+    """Get a threaded http server to receive the results of the tests."""
+    global the_controller_engine
+    the_controller_engine = controller_engine or ControllerEngine()
     config = Config(app=app, host=http_host, port=http_port)
     server = ThreadedUvicorn(config)
     return server
