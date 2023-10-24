@@ -84,7 +84,7 @@ jobs:
         labels: ${{ steps.meta-worker.outputs.labels }}
         file: ./worker.Dockerfile
     - name: "Docker: test worker image"
-      run: docker run --rm "${{ fromJSON(steps.meta-worker.outputs.json).tags[0] }}" | head -1` --help
+      run: docker run --rm "${{ fromJSON(steps.meta-worker.outputs.json).tags[0] }}" --help
 
     # now push if requested
     - name: "Docker: publish worker image"
