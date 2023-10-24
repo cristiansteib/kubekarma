@@ -1,0 +1,21 @@
+name: Python Checks
+
+on:
+  workflow_call:
+
+jobs:
+  run-tests:
+    name: Run python validations
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install tox and any other packages
+      run: pip install tox
+    - name: Run import linter
+      run: tox -e lint-imports
+    - name: Run test worker
+      run: tox -e test-worker
