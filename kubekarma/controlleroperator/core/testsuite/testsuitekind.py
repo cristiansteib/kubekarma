@@ -34,6 +34,7 @@ A TestSuite Kind is composed of:
   - Execution error
   - A deadline is reached and the results are not received.
 """
+from abc import ABC
 from hashlib import sha1
 from typing import Optional
 
@@ -60,7 +61,7 @@ from kubekarma.controlleroperator.core.testsuite.resultsreportsubscriber import 
 logger = logging.getLogger(__name__)
 
 
-class TestSuiteKindBase(ITestSuiteKind):
+class TestSuiteKindBase(ITestSuiteKind, ABC):
     """This class provides the base functionality for a TestSuiteKind.
 
     A TestSuiteKind is a kind of CRD that is used to define a test suite

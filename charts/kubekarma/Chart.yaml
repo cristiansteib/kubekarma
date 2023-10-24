@@ -4,6 +4,6 @@ description: An application for testing network policies
 
 type: application
 
-version: 0.0.1
+version: 0.0.1-1
 
 appVersion: "0.0.1"

@@ -48,10 +48,6 @@ class ResultsDeadlineValidator(IResultsSubscriber):
         self.__next_sched_event: Optional[sched.Event] = None
         self.__set_next_time_to_receive_results()
 
-        # PRINT THE STACK TRACE AT THIS POINT
-        import traceback
-        traceback.print_stack()
-
     def mark_results_received(self, received_at: datetime):
         """Mark the results as received."""
         self.__last_time_received_results = received_at

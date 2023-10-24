@@ -5,13 +5,25 @@ from kubernetes import client
 from kubernetes.client import V1CronJob
 
 from kubekarma.controlleroperator.config import Config
+from kubekarma.controlleroperator.core.abc.crdvalidator import ICrdValidator
 from kubekarma.controlleroperator.core.abc.resultspublisher import \
     IResultsSubscriber
 from kubekarma.controlleroperator.core.crdinstancemanager import CRD, \
     CRDInstanceManager
 
 
+
 class ITestSuiteKind(abc.ABC):
+
+    @property
+    @abc.abstractmethod
+    def api_plural(self) -> str:
+        """Get the api_plural of the CRD."""
+
+    @property
+    @abc.abstractmethod
+    def kind(self) -> str:
+        """Get the kind of the CRD."""
 
     @property
     @abc.abstractmethod
@@ -58,3 +70,7 @@ class ITestSuiteKind(abc.ABC):
     @abc.abstractmethod
     def resume_operations(self, crd_manager: CRDInstanceManager, spec: dict):
         """Resume the operations for the CRD instance."""
+
+    @abc.abstractmethod
+    def get_crd_validator(self) -> ICrdValidator:
+        """Return the controller CRD validator."""
