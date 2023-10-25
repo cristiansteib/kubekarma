@@ -48,12 +48,6 @@ jobs:
         labels: |
           org.opencontainers.image.title=KubeKarma Operator
           org.opencontainers.image.url=https://github.com/cristiansteib/kubekarma/blob/${{ github.sha }}/operator.Dockerfile
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=sha
     - name: "Docker: build operator image"
       uses: docker/build-push-action@v5
       with:
