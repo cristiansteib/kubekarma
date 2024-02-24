@@ -4,11 +4,11 @@ from typing import List
 
 import logging
 
+from kubekarma.grpcgen.collectors.v1 import controller_pb2
+from kubekarma.grpcgen.collectors.v1.controller_pb2 import TestCaseResult
 from kubekarma.worker import utils
 from kubekarma.worker.abs.exception import AssertionFailure, InvalidDefinition
 from kubekarma.worker.networksuite.dnsresolutionassertion import DNSResolutionAssertion
-from kubekarma.shared.pb2.controller_pb2 import TestCaseResult
-from kubekarma.shared.pb2 import controller_pb2
 from kubekarma.worker.networksuite.exactdestionationassertion import \
     ExactDestinationAssertion
 
@@ -40,7 +40,7 @@ class NetworkTestSuite:
             config_spec examples:
                 {
                   "name": "test-suite-1",
-                  "testCases": [
+                  "networkValidations": [
                     { "testExactDestination":
                         {
                             "destinationIp": "1.1.1.1",
@@ -61,19 +61,19 @@ class NetworkTestSuite:
         # TODO: improve this method
         keys = set(_test_case.keys())
         if "name" not in keys:
-            raise InvalidDefinition("testCases[] items must have a .name")
+            raise InvalidDefinition("networkValidations[] items must have a .name")
         test_name = _test_case.pop("name")
         # remove this value to only keep the assertion type
         _test_case.pop("allowedToFail", None)
         keys = set(_test_case.keys())
         if len(keys) != 1:
             raise InvalidDefinition(
-                f"testCases[{test_name}] must have exactly one assertion type."
+                f"networkValidations[{test_name}] must have exactly one assertion type."
             )
         assertion_type, assertion_config = _test_case.popitem()
         if assertion_type not in self.DEFINED_ASSERTIONS:
             raise InvalidDefinition(
-                f"testCases <{test_name}> has an unsupported assertion type: "
+                f"networkValidations <{test_name}> has an unsupported assertion type: "
                 f"<{assertion_type}>"
             )
         return self.TestCase(
@@ -101,30 +101,30 @@ class NetworkTestSuite:
             self.config_spec["name"]
         )
         results = []
-        for test in self.config_spec["testCases"]:
+        for test in self.config_spec["networkValidations"]:
             start_time = time.perf_counter()
             # Create a partial result item, the rest of the values
             # will be filled by the controller operator.
             test_result = TestCaseResult(
                 name=test["name"],
-                status=controller_pb2.TestStatus.FAILED,
+                status=controller_pb2.TestCaseResult.TestStatus.FAILED,
                 execution_duration="-",
                 execution_start_time=str(time.time()),
             )
             try:
                 self._run_test(test)
-                test_result.status = controller_pb2.TestStatus.SUCCEEDED
+                test_result.status = controller_pb2.TestCaseResult.TestStatus.SUCCEEDED
                 logger.info("[%s] ... PASSED", test['name'])
             except AssertionFailure:
                 logger.info("[%s] ... FAILED", test['name'])
             except NotImplementedError:
-                test_result.status = controller_pb2.TestStatus.NOTIMPLEMENTED
+                test_result.status = controller_pb2.TestCaseResult.TestStatus.NOTIMPLEMENTED
                 logger.info("[%s] ... SKIPPED", test['name'])
             except Exception as e:
                 logger.exception(
                     "[%s] ... ERROR", test['name']
                 )
-                test_result.status = controller_pb2.TestStatus.ERROR
+                test_result.status = controller_pb2.TestCaseResult.TestStatus.ERROR
                 test_result.error_message = utils.stringify_exception(e)
             finally:
                 end_time = time.perf_counter()

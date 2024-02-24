@@ -8,11 +8,14 @@ ENV LANG=C.UTF-8
 ENV PYTHONDONTWRITEBYTECODE=1
 # Seems to speed things up
 ENV PYTHONUNBUFFERED=1
+RUN python -m pip install hatch
+COPY readme.md .
+COPY pyproject.toml .
 
-COPY requirements.worker.txt ./
+RUN hatch dep show requirements --all > requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip wheel --no-deps --wheel-dir /usr/src/app/wheels \
-    -r requirements.worker.txt
+    -r requirements.txt
 
 FROM python:3.11-slim AS app
 LABEL org.opencontainers.image.authors="Cristian Steib"

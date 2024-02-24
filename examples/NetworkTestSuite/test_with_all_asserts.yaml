@@ -5,7 +5,7 @@ metadata:
 spec:
   name: A test suite test
   schedule: "* * * * *"
-  testCases:
+  networkValidations:
     - name: web-server-access
       testExactDestination:
         destinationIP: 192.168.1.100

@@ -1,4 +1,0 @@
-coverage>=4.0.3
-flake8
-tox
-mypy

@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from kubekarma.controlleroperator.grpcsrv.pb2 import health_pb2 as kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2
+from kubekarma.grpcgen.health.v1 import health_pb2 as kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2
 
 
 class HealthStub(object):
@@ -16,13 +16,13 @@ class HealthStub(object):
         """
         self.Check = channel.unary_unary(
                 '/grpc.health.v1.Health/Check',
-                request_serializer=kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckRequest.SerializeToString,
-                response_deserializer=kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckResponse.FromString,
+                request_serializer=kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckRequest.SerializeToString,
+                response_deserializer=kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckResponse.FromString,
                 )
         self.Watch = channel.unary_stream(
                 '/grpc.health.v1.Health/Watch',
-                request_serializer=kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckRequest.SerializeToString,
-                response_deserializer=kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckResponse.FromString,
+                request_serializer=kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckRequest.SerializeToString,
+                response_deserializer=kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckResponse.FromString,
                 )
 
 
@@ -46,13 +46,13 @@ def add_HealthServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Check': grpc.unary_unary_rpc_method_handler(
                     servicer.Check,
-                    request_deserializer=kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckRequest.FromString,
-                    response_serializer=kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckResponse.SerializeToString,
+                    request_deserializer=kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckRequest.FromString,
+                    response_serializer=kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckResponse.SerializeToString,
             ),
             'Watch': grpc.unary_stream_rpc_method_handler(
                     servicer.Watch,
-                    request_deserializer=kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckRequest.FromString,
-                    response_serializer=kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckResponse.SerializeToString,
+                    request_deserializer=kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckRequest.FromString,
+                    response_serializer=kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -76,8 +76,8 @@ class Health(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/grpc.health.v1.Health/Check',
-            kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckRequest.SerializeToString,
-            kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckResponse.FromString,
+            kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckRequest.SerializeToString,
+            kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -93,7 +93,7 @@ class Health(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_stream(request, target, '/grpc.health.v1.Health/Watch',
-            kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckRequest.SerializeToString,
-            kubekarma_dot_controlleroperator_dot_grpcsrv_dot_pb2_dot_health__pb2.HealthCheckResponse.FromString,
+            kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckRequest.SerializeToString,
+            kubekarma_dot_grpcgen_dot_health_dot_v1_dot_health__pb2.HealthCheckResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
