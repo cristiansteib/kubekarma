@@ -12,11 +12,11 @@ from kubekarma.controlleroperator.core.crdinstancemanager import (
 from kubekarma.controlleroperator.core.testsuite.statustracker import \
     TestSuiteStatusTracker
 from kubekarma.controlleroperator.core.testsuite.types import TestCaseStatusType
+from kubekarma.grpcgen.collectors.v1 import controller_pb2
 from kubekarma.shared.crd.genericcrd import (
     CRDTestExecutionStatus,
-    TestCaseStatus
+    AssertValidationStatus
 )
-from kubekarma.shared.pb2 import controller_pb2
 
 import logging
 logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ class ResultsReportSubscriber(IResultsSubscriber):
         and used to set  the status of the CRD.
         """
         # Define the status that are considered as bad
-        bad_status = (TestCaseStatus.Failed, TestCaseStatus.Error)
+        bad_status = (AssertValidationStatus.Failed, AssertValidationStatus.Error)
 
         # prepare the patch to be applied to the CRD to report the results
         test_cases: List[TestCaseStatusType] = []
@@ -64,7 +64,7 @@ class ResultsReportSubscriber(IResultsSubscriber):
         failed_test = []
 
         for result in results.test_case_results:
-            test_status = TestCaseStatus.from_pb2_test_status(result.status)
+            test_status = AssertValidationStatus.from_pb2_test_status(result.status)
             specific_test_case_status: TestCaseStatusType = {
                 # The unique name of the test case, we can consider this
                 # as the ID of the test case.
@@ -80,7 +80,7 @@ class ResultsReportSubscriber(IResultsSubscriber):
                 failed_test.append(result.name)
                 # If the test case failed due to an error,
                 # add the error message to the status.
-                if test_status == TestCaseStatus.Error:
+                if test_status == AssertValidationStatus.Error:
                     specific_test_case_status["error"] = result.error_message
             test_cases.append(specific_test_case_status)
 

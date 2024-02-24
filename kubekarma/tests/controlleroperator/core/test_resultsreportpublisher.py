@@ -1,9 +1,10 @@
 import unittest
 from unittest.mock import Mock
 
-from kubekarma.controlleroperator import ResultsReportPublisher
 from kubekarma.controlleroperator.core.abc.resultspublisher import \
     IResultsSubscriber
+from kubekarma.controlleroperator.core.resultsreportpublisher import \
+    ResultsReportPublisher
 
 
 class ResultsReportPublisherTest(unittest.TestCase):
