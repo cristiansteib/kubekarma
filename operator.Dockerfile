@@ -1,13 +1,10 @@
 FROM python:3.11-buster as builder
-# Always set a working directory
+RUN apt-get update && apt-get install --no-install-recommends -y git && apt-get clean
 WORKDIR /usr/src/app
-
-# Sets utf-8 encoding for Python et al
 ENV LANG=C.UTF-8
-# Turns off writing .pyc files; superfluous on an ephemeral container.
 ENV PYTHONDONTWRITEBYTECODE=1
-# Seems to speed things up
 ENV PYTHONUNBUFFERED=1
+
 RUN python -m pip install hatch
 COPY readme.md .
 COPY pyproject.toml .

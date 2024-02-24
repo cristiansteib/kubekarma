@@ -1,2 +1,5 @@
-k8s
-kubekarma/tests
+*
+!kubekarma/**
+!readme.md
+!pyproject.toml
+!.git
