@@ -7,4 +7,4 @@ type = layers
 layers=
     kubekarma.controlleroperator
     kubekarma.worker
-    kubekarma.shared
+    kubekarma.grpcgen

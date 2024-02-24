@@ -1,5 +1,5 @@
 workerImage:
   pullPolicy: IfNotPresent
-  tag: "v0.0.1-1-1-g367d205-dirty"
+  tag: "v0.0.1-1-21-g82f50b9-dirty"
 controller:
   logLevel: "debug"

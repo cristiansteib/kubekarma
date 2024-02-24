@@ -46,7 +46,6 @@ optional-dependencies.worker = [
 
 optional-dependencies.dev = [
   "grpcio-tools",
-  "import-linter"
 ]
 
 
@@ -54,7 +53,8 @@ optional-dependencies.testing = [
     "coverage>=4.0.3",
     "flake8",
     "tox",
-    "mypy"
+    "mypy",
+   "import-linter"
 ]
 
 
