@@ -1,0 +1,9 @@
+export default {
+  title: 'Kubekarma documentation',
+  url: 'https://cristiansteib.github.io', // Your website URL
+  baseUrl: '/',
+  organizationName: 'cristiansteib',
+  projectName: 'kubekarma',
+  deploymentBranch: 'gh-pages',
+  trailingSlash: true,
+};
