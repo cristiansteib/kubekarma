@@ -1,20 +1,22 @@
 syntax = "proto3";
 
-enum TestStatus {
-  // ERROR: when some exception was raised during the execution of the test case
-  ERROR = 0;
-  // SUCCEEDED: when the test case was executed successfully
-  SUCCEEDED = 1;
-  // FAILED: when the test case was executed but the assertion failed
-  FAILED = 2;
-  // NOTIMPLEMENTED: when the test case code is not implemented yet
-  NOTIMPLEMENTED = 3;
-}
+package kubekarma.collectors.v1;
 
 /**
   TestCaseResult represents and individual test case result
 */
 message TestCaseResult {
+  enum TestStatus {
+    // ERROR: when some exception was raised during the execution of the test case
+    ERROR = 0;
+    // SUCCEEDED: when the test case was executed successfully
+    SUCCEEDED = 1;
+    // FAILED: when the test case was executed but the assertion failed
+    FAILED = 2;
+    // NOTIMPLEMENTED: when the test case code is not implemented yet
+    NOT_IMPLEMENTED = 3;
+  }
+
   // The specific name of the test case
   string name = 1;
 

@@ -1,4 +1,3 @@
-import random
 from datetime import datetime
 from typing import Any
 
@@ -11,7 +10,7 @@ from kubekarma.controlleroperator.core.controllerengine import (
 from kubekarma.controlleroperator.config import config
 from kubekarma.controlleroperator.core.testsuite.lifecyclehandler import \
     ControllerCRDLifecycleHandler
-from kubekarma.controlleroperator.grpcsrv.server import build_grpc_server
+from kubekarma.controlleroperator.grpcservicers.server import build_grpc_server
 from kubekarma.controlleroperator.kinds.networktestsuite import \
     NetworkTestSuite
 from kubekarma.controlleroperator.httpserver import get_threaded_server

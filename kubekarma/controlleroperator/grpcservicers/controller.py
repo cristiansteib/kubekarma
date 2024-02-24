@@ -2,7 +2,8 @@ import grpc
 
 from kubekarma.controlleroperator.core.abc.resultspublisher import \
     ITestResultsPublisher
-from kubekarma.shared.pb2 import controller_pb2_grpc, controller_pb2
+from kubekarma.grpcgen.collectors.v1 import controller_pb2, \
+    controller_pb2_grpc
 
 
 class ControllerServiceServicer(controller_pb2_grpc.ControllerServiceServicer):

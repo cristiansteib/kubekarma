@@ -21,7 +21,7 @@ class CronJobHelperTest(unittest.TestCase):
             schedule="* * * * *",
             task_execution_config={
                 "name": "test-suite-1",
-                "testCases": [
+                "networkValidations": [
                     {
                         "testExactDestination": {
                             "destinationIp": "1.1.1.1",
@@ -34,7 +34,8 @@ class CronJobHelperTest(unittest.TestCase):
             kind="NetworkTestSuite",
             config=Config(
                 controller_server_host="http://localhost:5000",
-                worker_image="kubekarma/worker:latest"
+                worker_image="kubekarma/worker:latest",
+                log_level=1
             )
         )
         self.assertIsInstance(cron, V1CronJob)

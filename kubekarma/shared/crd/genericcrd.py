@@ -1,7 +1,7 @@
 """A module to represent the generic CRD object status."""
 import enum
 
-from kubekarma.shared.pb2 import controller_pb2
+from kubekarma.grpcgen.collectors.v1 import controller_pb2
 
 
 class CRDTestPhase(enum.Enum):
@@ -19,7 +19,7 @@ class CRDTestExecutionStatus(enum.Enum):
     Failing = "Failing"
 
 
-class TestCaseStatus(enum.Enum):
+class AssertValidationStatus(enum.Enum):
     """The status of a specific test case assert."""
     Failed = "Failed"
     Succeeded = "Succeeded"
@@ -29,20 +29,20 @@ class TestCaseStatus(enum.Enum):
     @classmethod
     def from_pb2_test_status(
         cls,
-        status: controller_pb2.TestStatus
-    ) -> 'TestCaseStatus':
+        status: controller_pb2.TestCaseResult.TestStatus
+    ) -> 'AssertValidationStatus':
         """Return the test case status defined by the CRD.
 
         This method converts the status transmitted by worker to the
         controller to the status defined by the CRD.
         """
-        if status == controller_pb2.TestStatus.SUCCEEDED:
-            return TestCaseStatus.Succeeded
-        elif status == controller_pb2.TestStatus.FAILED:
-            return TestCaseStatus.Failed
-        elif status == controller_pb2.TestStatus.NOTIMPLEMENTED:
-            return TestCaseStatus.NotImplemented
-        elif status == controller_pb2.TestStatus.ERROR:
-            return TestCaseStatus.Error
+        if status == controller_pb2.TestCaseResult.TestStatus.SUCCEEDED:
+            return AssertValidationStatus.Succeeded
+        elif status == controller_pb2.TestCaseResult.TestStatus.FAILED:
+            return AssertValidationStatus.Failed
+        elif status == controller_pb2.TestCaseResult.TestStatus.NOTIMPLEMENTED:
+            return AssertValidationStatus.NotImplemented
+        elif status == controller_pb2.TestCaseResult.TestStatus.ERROR:
+            return AssertValidationStatus.Error
         else:
             raise Exception(f"Unknown status: {status}")
