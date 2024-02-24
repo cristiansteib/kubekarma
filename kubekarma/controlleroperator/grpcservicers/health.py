@@ -1,9 +1,7 @@
-from kubekarma.controlleroperator.grpcsrv.pb2 import health_pb2_grpc
-from kubekarma.controlleroperator.grpcsrv.pb2.health_pb2 import (
-    HealthCheckResponse
-)
-
 import logging
+
+from kubekarma.grpcgen.health.v1 import health_pb2_grpc
+from kubekarma.grpcgen.health.v1.health_pb2 import HealthCheckResponse
 
 logger = logging.getLogger(__name__)
 

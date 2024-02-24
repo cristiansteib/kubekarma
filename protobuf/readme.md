@@ -11,3 +11,7 @@ Usage example:
  ```
 
 This will generate the files under the path `kubekarma/controlleroperator/grpc/pb2/*`
+
+```shell
+buf generate  protobuf/
+```

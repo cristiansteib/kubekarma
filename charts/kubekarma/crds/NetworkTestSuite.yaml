@@ -31,7 +31,7 @@ spec:
                   description: The frequency at which the test suite should be run
                   default: "* * * * *"
                   pattern: "^[*] ([*]|[0-5]?[0-9]) ([*]|[0-5]?[0-9]) ([*]|[0-9]|[0-2]?[0-9]) ([*]|[0-9]|[0-6]?[0-9])$"
-                testCases:
+                networkValidations:
                   type: array
                   items:
                     type: object
@@ -123,7 +123,7 @@ spec:
                   default: false
               required:
                 - name
-                - testCases
+                - networkValidations
             status:
               type: object
               # Required to allow patch status with KOPF :/
@@ -146,8 +146,8 @@ spec:
                       - Succeeding # The test suite is running and all the test cases are passing
                       - Failing # The test suite is running and at least one test case is failing
 
-                # @status.testCases is an array with information about each test case
-                testCases:
+                # @status.networkValidations is an array with information about each test case
+                networkValidations:
                   type: array
                   default: []
                   items:
@@ -187,7 +187,7 @@ spec:
                   description: The number of test cases that passed (Succeeded/Total)
               required:
                 - phase
-                - testCases
+                - networkValidations
       additionalPrinterColumns:
       - name: Phase
         type: string

@@ -26,5 +26,5 @@ class NetworkTestTestCase(unittest.TestCase):
         ) as _run_test_mock:
             test_suite = NetworkTestSuite(test_config["spec"])
             test_suite.run()
-            test_suite._parse_test_case(test_config["spec"]["testCases"][3])
+            test_suite._parse_test_case(test_config["spec"]["networkValidations"][3])
         self.assertEqual(_run_test_mock.call_count, 4)

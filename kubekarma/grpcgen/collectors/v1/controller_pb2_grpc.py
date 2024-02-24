@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from kubekarma.shared.pb2 import controller_pb2 as kubekarma_dot_shared_dot_pb2_dot_controller__pb2
+from kubekarma.grpcgen.collectors.v1 import controller_pb2 as kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2
 
 
 class ControllerServiceStub(object):
@@ -15,9 +15,9 @@ class ControllerServiceStub(object):
             channel: A grpc.Channel.
         """
         self.ProcessTestSuiteResults = channel.unary_unary(
-                '/ControllerService/ProcessTestSuiteResults',
-                request_serializer=kubekarma_dot_shared_dot_pb2_dot_controller__pb2.ProcessTestSuiteResultsRequest.SerializeToString,
-                response_deserializer=kubekarma_dot_shared_dot_pb2_dot_controller__pb2.ProcessTestSuiteResultsResponse.FromString,
+                '/kubekarma.collectors.v1.ControllerService/ProcessTestSuiteResults',
+                request_serializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsRequest.SerializeToString,
+                response_deserializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsResponse.FromString,
                 )
 
 
@@ -36,12 +36,12 @@ def add_ControllerServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'ProcessTestSuiteResults': grpc.unary_unary_rpc_method_handler(
                     servicer.ProcessTestSuiteResults,
-                    request_deserializer=kubekarma_dot_shared_dot_pb2_dot_controller__pb2.ProcessTestSuiteResultsRequest.FromString,
-                    response_serializer=kubekarma_dot_shared_dot_pb2_dot_controller__pb2.ProcessTestSuiteResultsResponse.SerializeToString,
+                    request_deserializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsRequest.FromString,
+                    response_serializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'ControllerService', rpc_method_handlers)
+            'kubekarma.collectors.v1.ControllerService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -60,8 +60,8 @@ class ControllerService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/ControllerService/ProcessTestSuiteResults',
-            kubekarma_dot_shared_dot_pb2_dot_controller__pb2.ProcessTestSuiteResultsRequest.SerializeToString,
-            kubekarma_dot_shared_dot_pb2_dot_controller__pb2.ProcessTestSuiteResultsResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/kubekarma.collectors.v1.ControllerService/ProcessTestSuiteResults',
+            kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsRequest.SerializeToString,
+            kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
