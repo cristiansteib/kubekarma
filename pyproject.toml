@@ -26,6 +26,7 @@ classifiers = [
 dependencies = []
 
 optional-dependencies.controller = [
+  "PyYAML==6.0.1",
   "kopf[full-auth]",
   "kubernetes",
   "fastapi",

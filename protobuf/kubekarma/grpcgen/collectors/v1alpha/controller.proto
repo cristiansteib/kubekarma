@@ -42,7 +42,7 @@ message ExecutionResultRequest {
   // the time when the test suite started executing
   // it should be in ISO 8601 format
   google.protobuf.Timestamp start_time = 2;
-  repeated ValidationResult validation_result = 3;
+  repeated ValidationResult validation_results = 3;
   // token: is used to identify the test suite execution
   string token = 4;
 }

@@ -6,7 +6,7 @@ import abc
 import collections.abc
 import grpc
 import grpc.aio
-import kubekarma.grpcgen.collectors.v1.controller_pb2
+import kubekarma.grpcgen.collectors.v1alpha.controller_pb2
 import typing
 
 _T = typing.TypeVar('_T')
@@ -20,15 +20,15 @@ class _ServicerContext(grpc.ServicerContext, grpc.aio.ServicerContext):  # type:
 class TestSuiteExecutionResultServiceStub:
     def __init__(self, channel: typing.Union[grpc.Channel, grpc.aio.Channel]) -> None: ...
     ReportResults: grpc.UnaryUnaryMultiCallable[
-        kubekarma.grpcgen.collectors.v1.controller_pb2.ExecutionResultRequest,
-        kubekarma.grpcgen.collectors.v1.controller_pb2.ExecutionResultResponse,
+        kubekarma.grpcgen.collectors.v1alpha.controller_pb2.ExecutionResultRequest,
+        kubekarma.grpcgen.collectors.v1alpha.controller_pb2.ExecutionResultResponse,
     ]
     """ProcessTestSuiteResults is called by the test runner to report the results of the execution"""
 
 class TestSuiteExecutionResultServiceAsyncStub:
     ReportResults: grpc.aio.UnaryUnaryMultiCallable[
-        kubekarma.grpcgen.collectors.v1.controller_pb2.ExecutionResultRequest,
-        kubekarma.grpcgen.collectors.v1.controller_pb2.ExecutionResultResponse,
+        kubekarma.grpcgen.collectors.v1alpha.controller_pb2.ExecutionResultRequest,
+        kubekarma.grpcgen.collectors.v1alpha.controller_pb2.ExecutionResultResponse,
     ]
     """ProcessTestSuiteResults is called by the test runner to report the results of the execution"""
 
@@ -36,9 +36,9 @@ class TestSuiteExecutionResultServiceServicer(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def ReportResults(
         self,
-        request: kubekarma.grpcgen.collectors.v1.controller_pb2.ExecutionResultRequest,
+        request: kubekarma.grpcgen.collectors.v1alpha.controller_pb2.ExecutionResultRequest,
         context: _ServicerContext,
-    ) -> typing.Union[kubekarma.grpcgen.collectors.v1.controller_pb2.ExecutionResultResponse, collections.abc.Awaitable[kubekarma.grpcgen.collectors.v1.controller_pb2.ExecutionResultResponse]]:
+    ) -> typing.Union[kubekarma.grpcgen.collectors.v1alpha.controller_pb2.ExecutionResultResponse, collections.abc.Awaitable[kubekarma.grpcgen.collectors.v1alpha.controller_pb2.ExecutionResultResponse]]:
         """ProcessTestSuiteResults is called by the test runner to report the results of the execution"""
 
 def add_TestSuiteExecutionResultServiceServicer_to_server(servicer: TestSuiteExecutionResultServiceServicer, server: typing.Union[grpc.Server, grpc.aio.Server]) -> None: ...

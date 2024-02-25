@@ -95,7 +95,7 @@ class ExecutionResultRequest(google.protobuf.message.Message):
 
     NAME_FIELD_NUMBER: builtins.int
     START_TIME_FIELD_NUMBER: builtins.int
-    VALIDATION_RESULT_FIELD_NUMBER: builtins.int
+    VALIDATION_RESULTS_FIELD_NUMBER: builtins.int
     TOKEN_FIELD_NUMBER: builtins.int
     name: builtins.str
     """name: is the name of the test suite"""
@@ -105,7 +105,7 @@ class ExecutionResultRequest(google.protobuf.message.Message):
         it should be in ISO 8601 format
         """
     @property
-    def validation_result(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ValidationResult]: ...
+    def validation_results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ValidationResult]: ...
     token: builtins.str
     """token: is used to identify the test suite execution"""
     def __init__(
@@ -113,11 +113,11 @@ class ExecutionResultRequest(google.protobuf.message.Message):
         *,
         name: builtins.str = ...,
         start_time: google.protobuf.timestamp_pb2.Timestamp | None = ...,
-        validation_result: collections.abc.Iterable[global___ValidationResult] | None = ...,
+        validation_results: collections.abc.Iterable[global___ValidationResult] | None = ...,
         token: builtins.str = ...,
     ) -> None: ...
     def HasField(self, field_name: typing_extensions.Literal["start_time", b"start_time"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "start_time", b"start_time", "token", b"token", "validation_result", b"validation_result"]) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "start_time", b"start_time", "token", b"token", "validation_results", b"validation_results"]) -> None: ...
 
 global___ExecutionResultRequest = ExecutionResultRequest
 

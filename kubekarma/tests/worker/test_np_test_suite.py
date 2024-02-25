@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import yaml
 
-from kubekarma.worker.networksuite.testsuite import NetworkTestSuite
+from kubekarma.worker.networksuite.testsuite import NetworkKubekarmaTestSuite
 
 
 class NetworkTestTestCase(unittest.TestCase):
@@ -22,10 +22,12 @@ class NetworkTestTestCase(unittest.TestCase):
     def test_process_a_spec(self):
         test_config = self.load_yaml()
         with patch(
-            "kubekarma.worker.networksuite.testsuite.NetworkTestSuite._run_test"
+            "kubekarma.worker.networksuite.dnsresolutionassertion.DNSResolutionAssertion.test"
         ) as _run_test_mock:
-            test_suite = NetworkTestSuite(test_config["spec"])
-            test_suite._parse_test_case(test_config["spec"]["networkValidations"][3])
-            results = test_suite.run()
-            print(results[0].start_time)
-        self.assertEqual(_run_test_mock.call_count, 4)
+            test_suite = NetworkKubekarmaTestSuite(test_config["spec"])
+            self.assertEqual(
+                4, len(test_suite.test_cases),
+            )
+            test_case = test_suite._parse_test_case(test_config["spec"]["networkValidations"][3])
+            results = test_suite.execute_test(test_case)
+        self.assertEqual(_run_test_mock.call_count, 1)

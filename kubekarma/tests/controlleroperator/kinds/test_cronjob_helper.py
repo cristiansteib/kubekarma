@@ -13,7 +13,7 @@ class CronJobHelperTest(unittest.TestCase):
         cron = CronJobHelper.generate_cronjob(
             crd_instance=CRD(
                 namespace="default",
-                plural="NetworkTestSuite",
+                plural="NetworkKubarmaTestSuite",
                 metadata_name="test-suite-1",
                 cron_job_name="test-suite-1-npts-1234",
                 worker_task_id="1234"
@@ -31,7 +31,7 @@ class CronJobHelperTest(unittest.TestCase):
                     }
                 ]
             },
-            kind="NetworkTestSuite",
+            kind="NetworkKubarmaTestSuite",
             config=Config(
                 controller_server_host="http://localhost:5000",
                 worker_image="kubekarma/worker:latest",

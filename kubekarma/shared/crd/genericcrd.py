@@ -1,7 +1,7 @@
 """A module to represent the generic CRD object status."""
 import enum
 
-from kubekarma.grpcgen.collectors.v1 import controller_pb2
+from kubekarma.grpcgen.collectors.v1alpha import controller_pb2
 
 
 class CRDTestPhase(enum.Enum):

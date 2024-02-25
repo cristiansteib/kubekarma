@@ -99,7 +99,7 @@ def get_current_timestamp(**kwargs: Any) -> str:
     return datetime.utcnow().isoformat()
 
 
-# Register the NetworkTestSuite CRD
+# Register the NetworkKubekarmaTestSuite CRD
 network_test_suite = NetworkTestSuite(
     controller_engine=controller_engine
 )

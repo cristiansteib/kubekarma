@@ -26,14 +26,14 @@ class NetworkTestSuiteCrdValidator(ICrdValidator):
         """Validate the spec of the CRD and return a list of errors.
 
         Rules:
-            spec.testCases[].name must be unique
+            spec.networkValidations[].name must be unique
                 This is required because the test suite name is used to identify each
                 test for the results.
         """
         _spec = deepcopy(spec)
         errors = []
-        # testCases items should only define one assertion type.
-        test_cases: List[Dict] = _spec["testCases"]
+        # networkValidations items should only define one assertion type.
+        test_cases: List[Dict] = _spec["networkValidations"]
         test_case_names = []
         for index, test_case in enumerate(test_cases):
             # pop element if exists
@@ -41,20 +41,20 @@ class NetworkTestSuiteCrdValidator(ICrdValidator):
             name = test_case.pop("name", UndefinedCentinel)
             if name is UndefinedCentinel:
                 errors.append(
-                    f"Missing property spec.testCases[{index}].name"
+                    f"Missing property spec.networkValidations[{index}].name"
                 )
                 continue
             test_case_names.append(name)
 
             if len(test_case.keys()) > 1:
                 errors.append(
-                    f"testCases[{index}] must have exactly one assertion type."
+                    f"networkValidations[{index}] must have exactly one assertion type."
                 )
                 continue
             assertion_type, assertion_config = test_case.popitem()
             if assertion_type not in self.DEFINED_ASSERTIONS:
                 errors.append(
-                    f"testCases[{index}] has an unsupported assertion type: "
+                    f"networkValidations[{index}] has an unsupported assertion type: "
                     f"{assertion_type}"
                 )
                 continue
@@ -65,7 +65,7 @@ class NetworkTestSuiteCrdValidator(ICrdValidator):
         )
         if duplicates:
             errors.append(
-                f"testCases[].name must be unique. (duplicate: {duplicates})"
+                f"networkValidations[].name must be unique. (duplicate: {duplicates})"
             )
 
         return errors

@@ -12,7 +12,7 @@ from kubekarma.controlleroperator.core.crdinstancemanager import (
 from kubekarma.controlleroperator.core.testsuite.statustracker import \
     TestSuiteStatusTracker
 from kubekarma.controlleroperator.core.testsuite.types import TestCaseStatusType
-from kubekarma.grpcgen.collectors.v1 import controller_pb2
+from kubekarma.grpcgen.collectors.v1alpha import controller_pb2
 from kubekarma.shared.crd.genericcrd import (
     CRDTestExecutionStatus,
     AssertValidationStatus
