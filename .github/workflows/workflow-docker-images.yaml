@@ -40,6 +40,10 @@ jobs:
       with:
         username: ${{ inputs.username }}
         password: ${{ secrets.token }}
+    - name: Git checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: '0'
     - name: "Docker: metadata-action for operator"
       id: meta-operator
       uses: docker/metadata-action@v5
