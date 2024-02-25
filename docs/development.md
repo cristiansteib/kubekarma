@@ -12,5 +12,5 @@ sudo apt install python3.11-full
 minikube profile create custom
 minikube start -p custom
 skaffold dev --port-forward
-kubectl apply -f examples/NetworkTestSuite/test_with_all_asserts.yaml
+kubectl apply -f examples/NetworkKubarmaTestSuite/test_with_all_asserts.yaml
 ```

@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "buf-generate": "buf generate protobuf/"
+  },
+  "dependencies": {
+    "@bufbuild/buf": "^1.29.0"
+  }
+}

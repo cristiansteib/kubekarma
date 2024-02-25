@@ -1,0 +1,80 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kubekarma"
+description = "A Kubernetes operator to ensure environment quality for applications."
+readme.content-type = "text/markdown"
+readme.file = "readme.md"
+maintainers = [
+  { name = "Cristian Steib", email = "cristiansteib@gmail.com" },
+]
+authors = [
+  { name = "Cristian Steib", email = "cristiansteib@gmail.com" },
+]
+requires-python = ">=3.11"
+dynamic = [
+  "version"
+]
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
+dependencies = []
+
+optional-dependencies.controller = [
+  "PyYAML==6.0.1",
+  "kopf[full-auth]",
+  "kubernetes",
+  "fastapi",
+  "uvicorn",
+  "grpcio",
+  "protobuf",
+  "croniter"
+]
+
+optional-dependencies.worker = [
+  "dnspython==2.4.2",
+  "urllib3", # This package could conflict with the kubernetes version
+  "PyYAML==6.0.1",
+  "protobuf",
+  "grpcio"
+]
+
+
+optional-dependencies.dev = [
+  "grpcio-tools",
+]
+
+
+optional-dependencies.testing = [
+    "coverage>=4.0.3",
+    "flake8",
+    "tox",
+    "mypy",
+   "import-linter"
+]
+
+
+
+[project.scripts]
+collector-server = "reportreceiver.grpc.server:main"
+
+[tool.hatch.version]
+#path = "src/__init__.py"
+source = "vcs"
+
+[build.hooks.vcs]
+version-file = "_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+  "app/",
+  "app/cluster",
+  "app/reportreceiver",
+  "app/operations",
+  "app/ui",
+]

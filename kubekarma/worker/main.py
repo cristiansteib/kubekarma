@@ -1,17 +1,17 @@
 import dataclasses
 import datetime
 import os
-from typing import List
 
 import yaml
 
-from kubekarma.shared.pb2 import controller_pb2
 
-from kubekarma.worker.networksuite.testsuite import NetworkTestSuite
+from kubekarma.worker.abs.ikubekarmatestsuite import IKubekarmaTestSuite
+from kubekarma.worker.networksuite.testsuite import NetworkKubekarmaTestSuite
 from kubekarma.worker.sender import ControllerCommunication
 
 import logging
 
+from kubekarma.worker.testsuiteexecutor import TestSuiteExecutor
 
 # logger to stdout
 logging.basicConfig(
@@ -58,17 +58,16 @@ class ExecutionTaskConfig:
                 raise Exception(f"Environment variable {env} is not set")
 
 
-def perform_task_execution(
-    task: ExecutionTaskConfig
-) -> List[controller_pb2.TestCaseResult]:
-    test_suite = None
-    if task.test_suite_kind == NetworkTestSuite.KIND:
-        test_suite = NetworkTestSuite(task.test_suite_spec)
+def get_kubekarma_test_suite_from_kind(
+    kind: str,
+    spec: dict
+) -> IKubekarmaTestSuite:
+    if kind == NetworkKubekarmaTestSuite.kind:
+        return NetworkKubekarmaTestSuite(spec)
     else:
         raise Exception(
-            f"Unsupported test suite kind: {task.test_suite_kind}"
+            f"Unsupported test suite kind: {kind}"
         )
-    return test_suite.run()
 
 
 def read_yaml(stream: str) -> dict:
@@ -80,15 +79,13 @@ if __name__ == "__main__":
     started_at_time = datetime.datetime.now().isoformat()
     task_config = ExecutionTaskConfig.from_envs()
     controller = ControllerCommunication(task_config.controller_grpc_address)
-    results = perform_task_execution(task_config)
-    # ControllerCommunication and is too tight to the proto,
-    # it should be agnostic to the communication channel, and instead
-    # use a DTO. But, to avoid the overhead of create classes and conversions
-    # I will keep it like this for now.
+    test_executor = TestSuiteExecutor(
+        get_kubekarma_test_suite_from_kind(
+            task_config.test_suite_kind,
+            task_config.test_suite_spec
+        ),
+        token=task_config.identifier
+    )
     controller.send_results(
-        controller_pb2.ProcessTestSuiteResultsRequest(
-            started_at_time=started_at_time,
-            token=task_config.identifier,
-            test_case_results=results
-        )
+        test_executor.execute()
     )

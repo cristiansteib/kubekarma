@@ -4,7 +4,7 @@ import logging
 
 from kubekarma.controlleroperator.core.testsuite.types import TestSuiteStatusType
 from kubekarma.shared.crd.genericcrd import CRDTestExecutionStatus, \
-    TestCaseStatus
+    AssertValidationStatus
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class TestSuiteStatusTracker:
         failed_test_cases = [
             test_case for test_case in test_cases
             if test_case["status"] in (
-                TestCaseStatus.Failed.value, TestCaseStatus.Error.value
+                AssertValidationStatus.Failed.value, AssertValidationStatus.Error.value
             )
         ]
 

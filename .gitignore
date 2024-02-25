@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 /.import_linter_cache/
 venv311/
+/node_modules/
