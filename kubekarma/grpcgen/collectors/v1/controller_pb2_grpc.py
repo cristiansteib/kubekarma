@@ -5,7 +5,7 @@ import grpc
 from kubekarma.grpcgen.collectors.v1 import controller_pb2 as kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2
 
 
-class ControllerServiceStub(object):
+class TestSuiteExecutionResultServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -14,17 +14,17 @@ class ControllerServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.ProcessTestSuiteResults = channel.unary_unary(
-                '/kubekarma.collectors.v1.ControllerService/ProcessTestSuiteResults',
-                request_serializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsRequest.SerializeToString,
-                response_deserializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsResponse.FromString,
+        self.ReportResults = channel.unary_unary(
+                '/kubekarma.collectors.v1.TestSuiteExecutionResultService/ReportResults',
+                request_serializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ExecutionResultRequest.SerializeToString,
+                response_deserializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ExecutionResultResponse.FromString,
                 )
 
 
-class ControllerServiceServicer(object):
+class TestSuiteExecutionResultServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def ProcessTestSuiteResults(self, request, context):
+    def ReportResults(self, request, context):
         """ProcessTestSuiteResults is called by the test runner to report the results of the execution
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -32,25 +32,25 @@ class ControllerServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
 
-def add_ControllerServiceServicer_to_server(servicer, server):
+def add_TestSuiteExecutionResultServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'ProcessTestSuiteResults': grpc.unary_unary_rpc_method_handler(
-                    servicer.ProcessTestSuiteResults,
-                    request_deserializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsRequest.FromString,
-                    response_serializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsResponse.SerializeToString,
+            'ReportResults': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReportResults,
+                    request_deserializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ExecutionResultRequest.FromString,
+                    response_serializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ExecutionResultResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'kubekarma.collectors.v1.ControllerService', rpc_method_handlers)
+            'kubekarma.collectors.v1.TestSuiteExecutionResultService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
  # This class is part of an EXPERIMENTAL API.
-class ControllerService(object):
+class TestSuiteExecutionResultService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def ProcessTestSuiteResults(request,
+    def ReportResults(request,
             target,
             options=(),
             channel_credentials=None,
@@ -60,8 +60,8 @@ class ControllerService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/kubekarma.collectors.v1.ControllerService/ProcessTestSuiteResults',
-            kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsRequest.SerializeToString,
-            kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ProcessTestSuiteResultsResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/kubekarma.collectors.v1.TestSuiteExecutionResultService/ReportResults',
+            kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ExecutionResultRequest.SerializeToString,
+            kubekarma_dot_grpcgen_dot_collectors_dot_v1_dot_controller__pb2.ExecutionResultResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -1,12 +1,14 @@
 syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 
 package kubekarma.collectors.v1;
 
 /**
-  TestCaseResult represents and individual test case result
+  TestValidationResult represents a single test case result
 */
-message TestCaseResult {
-  enum TestStatus {
+message ValidationResult {
+  enum Status {
     // ERROR: when some exception was raised during the execution of the test case
     ERROR = 0;
     // SUCCEEDED: when the test case was executed successfully
@@ -20,11 +22,11 @@ message TestCaseResult {
   // The specific name of the test case
   string name = 1;
 
-  TestStatus status = 2;
+  Status status = 2;
   // How long it took to execute the test case
-  string execution_duration = 3;
+  google.protobuf.Duration duration = 3;
   // When the test case started executing
-  string execution_start_time = 4;
+  google.protobuf.Timestamp start_time = 4;
   // errorMessage is only set when the status is ERROR and it contains the
   // exception message and stack trace
   string error_message = 5;
@@ -34,24 +36,24 @@ message TestCaseResult {
 /**
   TestSuiteResult represents the result of a whole test suite execution
 */
-message ProcessTestSuiteResultsRequest {
+message ExecutionResultRequest {
   // name: is the name of the test suite
   string name = 1;
   // the time when the test suite started executing
   // it should be in ISO 8601 format
-  string started_at_time = 2;
-  repeated TestCaseResult test_case_results = 3;
+  google.protobuf.Timestamp start_time = 2;
+  repeated ValidationResult validation_result = 3;
   // token: is used to identify the test suite execution
   string token = 4;
 }
 
 
-message ProcessTestSuiteResultsResponse {
+message ExecutionResultResponse {
   string message = 1;
 }
 
-service ControllerService {
+service TestSuiteExecutionResultService {
 
   // ProcessTestSuiteResults is called by the test runner to report the results of the execution
-  rpc ProcessTestSuiteResults (ProcessTestSuiteResultsRequest) returns (ProcessTestSuiteResultsResponse) {}
+  rpc ReportResults (ExecutionResultRequest) returns (ExecutionResultResponse) {}
 }

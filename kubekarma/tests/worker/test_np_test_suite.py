@@ -25,6 +25,7 @@ class NetworkTestTestCase(unittest.TestCase):
             "kubekarma.worker.networksuite.testsuite.NetworkTestSuite._run_test"
         ) as _run_test_mock:
             test_suite = NetworkTestSuite(test_config["spec"])
-            test_suite.run()
             test_suite._parse_test_case(test_config["spec"]["networkValidations"][3])
+            results = test_suite.run()
+            print(results[0].start_time)
         self.assertEqual(_run_test_mock.call_count, 4)

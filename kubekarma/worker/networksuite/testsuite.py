@@ -4,8 +4,10 @@ from typing import List
 
 import logging
 
+import google
+
 from kubekarma.grpcgen.collectors.v1 import controller_pb2
-from kubekarma.grpcgen.collectors.v1.controller_pb2 import TestCaseResult
+from kubekarma.grpcgen.collectors.v1.controller_pb2 import ValidationResult
 from kubekarma.worker import utils
 from kubekarma.worker.abs.exception import AssertionFailure, InvalidDefinition
 from kubekarma.worker.networksuite.dnsresolutionassertion import DNSResolutionAssertion
@@ -95,41 +97,43 @@ class NetworkTestSuite:
         assertion = clazz.from_dict(test_case.assertion_config)
         assertion.test()
 
-    def run(self) -> List[TestCaseResult]:
+    def run(self) -> List[ValidationResult]:
         logger.info(
             "[%s] Running test suite",
             self.config_spec["name"]
         )
-        results = []
+        partial_test_results = []
         for test in self.config_spec["networkValidations"]:
             start_time = time.perf_counter()
-            # Create a partial result item, the rest of the values
-            # will be filled by the controller operator.
-            test_result = TestCaseResult(
-                name=test["name"],
-                status=controller_pb2.TestCaseResult.TestStatus.FAILED,
-                execution_duration="-",
-                execution_start_time=str(time.time()),
-            )
+            seconds, micros = divmod(time.time(), 10 ** 6)
+            nanos = micros * 10 ** 3
+            partial_test_result = {
+                "name": test["name"],
+                "status": controller_pb2.ValidationResult.Status.FAILED,
+                "start_time": google.protobuf.timestamp_pb2.Timestamp(
+                    seconds=int(seconds),
+                    nanos=int(nanos)
+                )
+            }
             try:
                 self._run_test(test)
-                test_result.status = controller_pb2.TestCaseResult.TestStatus.SUCCEEDED
+                partial_test_result["status"] = controller_pb2.ValidationResult.Status.SUCCEEDED
                 logger.info("[%s] ... PASSED", test['name'])
             except AssertionFailure:
                 logger.info("[%s] ... FAILED", test['name'])
             except NotImplementedError:
-                test_result.status = controller_pb2.TestCaseResult.TestStatus.NOTIMPLEMENTED
+                partial_test_result["status"] = controller_pb2.ValidationResult.Status.NOTIMPLEMENTED
                 logger.info("[%s] ... SKIPPED", test['name'])
             except Exception as e:
                 logger.exception(
                     "[%s] ... ERROR", test['name']
                 )
-                test_result.status = controller_pb2.TestCaseResult.TestStatus.ERROR
-                test_result.error_message = utils.stringify_exception(e)
+                partial_test_result["status"] = controller_pb2.ValidationResult.Status.ERROR
+                partial_test_result["error_message"] = utils.stringify_exception(e)
             finally:
                 end_time = time.perf_counter()
-                test_result.execution_duration = (
-                    f"{end_time - start_time:0.4f}s"
+                partial_test_result["duration"] = google.protobuf.duration_pb2.Duration(
+                    seconds=int(end_time - start_time)
                 )
-                results.append(test_result)
-        return results
+                partial_test_results.append(partial_test_result)
+        return list(map(lambda data: ValidationResult(**data), partial_test_results))

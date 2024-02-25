@@ -46,7 +46,7 @@ class ResultsReportSubscriber(IResultsSubscriber):
 
     def update(
         self,
-        results: controller_pb2.ProcessTestSuiteResultsRequest
+        results: controller_pb2.ExecutionResultRequest
     ):
         """Receive the results of some the execution task.
 

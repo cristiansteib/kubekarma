@@ -29,20 +29,20 @@ class AssertValidationStatus(enum.Enum):
     @classmethod
     def from_pb2_test_status(
         cls,
-        status: controller_pb2.TestCaseResult.TestStatus
+        status: controller_pb2.ValidationResult.Status
     ) -> 'AssertValidationStatus':
         """Return the test case status defined by the CRD.
 
         This method converts the status transmitted by worker to the
         controller to the status defined by the CRD.
         """
-        if status == controller_pb2.TestCaseResult.TestStatus.SUCCEEDED:
+        if status == controller_pb2.ValidationResult.Status.SUCCEEDED:
             return AssertValidationStatus.Succeeded
-        elif status == controller_pb2.TestCaseResult.TestStatus.FAILED:
+        elif status == controller_pb2.ValidationResult.Status.FAILED:
             return AssertValidationStatus.Failed
-        elif status == controller_pb2.TestCaseResult.TestStatus.NOTIMPLEMENTED:
+        elif status == controller_pb2.ValidationResult.Status.NOTIMPLEMENTED:
             return AssertValidationStatus.NotImplemented
-        elif status == controller_pb2.TestCaseResult.TestStatus.ERROR:
+        elif status == controller_pb2.ValidationResult.Status.ERROR:
             return AssertValidationStatus.Error
         else:
             raise Exception(f"Unknown status: {status}")

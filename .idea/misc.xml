@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Black">
-    <option name="sdkName" value="Python 3.10 (k8s-unhealthy-spammer)" />
+    <option name="sdkName" value="Python 3.10 (test-kopf)" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.11 (kubekarma)" project-jdk-type="Python SDK" />
 </project>
