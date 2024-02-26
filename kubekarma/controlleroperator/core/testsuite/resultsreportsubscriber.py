@@ -63,7 +63,7 @@ class ResultsReportSubscriber(IResultsSubscriber):
         whole_test_execution_status = CRDTestExecutionStatus.Succeeding
         failed_test = []
 
-        for result in results.test_case_results:
+        for result in results.validation_results:
             test_status = AssertValidationStatus.from_pb2_test_status(result.status)
             specific_test_case_status: TestCaseStatusType = {
                 # The unique name of the test case, we can consider this
@@ -72,7 +72,7 @@ class ResultsReportSubscriber(IResultsSubscriber):
                 # The status of the test case.
                 "status": test_status.value,
                 # The time it took to execute the test case.
-                "executionTime": result.execution_duration,
+                "executionTime": result.duration,
             }
             # Check if the whole test suite should be marked as failing
             if test_status in bad_status:
@@ -91,14 +91,13 @@ class ResultsReportSubscriber(IResultsSubscriber):
                 message=f"Failed test: {failed_test}"
             )
         # Create the status object to be applied to the CRD
+        seconds, nanos = results.start_time.seconds, results.start_time.nanos
         status_payload = (
             self.test_suite_status_tracker
             .calculate_current_test_suite_status(
                 current_status_reported=whole_test_execution_status,
                 test_cases=test_cases,
-                execution_time=datetime.fromisoformat(
-                    results.started_at_time
-                )
+                execution_time=datetime.fromtimestamp(seconds + nanos / 10 ** 9),
             )
         )
         self.crd_manager.set_test_suite_result_status(

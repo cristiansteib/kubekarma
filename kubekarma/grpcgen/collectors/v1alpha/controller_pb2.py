@@ -16,21 +16,21 @@ from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__
 from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n5kubekarma/grpcgen/collectors/v1alpha/controller.proto\x12\x17kubekarma.collectors.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/duration.proto\"\xcc\x02\n\x10ValidationResult\x12\x12\n\x04name\x18\x01 \x01(\tR\x04name\x12H\n\x06status\x18\x02 \x01(\x0e\x32\x30.kubekarma.collectors.v1.ValidationResult.StatusR\x06status\x12\x35\n\x08\x64uration\x18\x03 \x01(\x0b\x32\x19.google.protobuf.DurationR\x08\x64uration\x12\x39\n\nstart_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\tstartTime\x12#\n\rerror_message\x18\x05 \x01(\tR\x0c\x65rrorMessage\"C\n\x06Status\x12\t\n\x05\x45RROR\x10\x00\x12\r\n\tSUCCEEDED\x10\x01\x12\n\n\x06\x46\x41ILED\x10\x02\x12\x13\n\x0fNOT_IMPLEMENTED\x10\x03\"\xd7\x01\n\x16\x45xecutionResultRequest\x12\x12\n\x04name\x18\x01 \x01(\tR\x04name\x12\x39\n\nstart_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\tstartTime\x12X\n\x12validation_results\x18\x03 \x03(\x0b\x32).kubekarma.collectors.v1.ValidationResultR\x11validationResults\x12\x14\n\x05token\x18\x04 \x01(\tR\x05token\"3\n\x17\x45xecutionResultResponse\x12\x18\n\x07message\x18\x01 \x01(\tR\x07message2\x97\x01\n\x1fTestSuiteExecutionResultService\x12t\n\rReportResults\x12/.kubekarma.collectors.v1.ExecutionResultRequest\x1a\x30.kubekarma.collectors.v1.ExecutionResultResponse\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n5kubekarma/grpcgen/collectors/v1alpha/controller.proto\x12\x1ckubekarma.collectors.v1alpha\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/duration.proto\"\xd1\x02\n\x10ValidationResult\x12\x12\n\x04name\x18\x01 \x01(\tR\x04name\x12M\n\x06status\x18\x02 \x01(\x0e\x32\x35.kubekarma.collectors.v1alpha.ValidationResult.StatusR\x06status\x12\x35\n\x08\x64uration\x18\x03 \x01(\x0b\x32\x19.google.protobuf.DurationR\x08\x64uration\x12\x39\n\nstart_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\tstartTime\x12#\n\rerror_message\x18\x05 \x01(\tR\x0c\x65rrorMessage\"C\n\x06Status\x12\t\n\x05\x45RROR\x10\x00\x12\r\n\tSUCCEEDED\x10\x01\x12\n\n\x06\x46\x41ILED\x10\x02\x12\x13\n\x0fNOT_IMPLEMENTED\x10\x03\"\xdc\x01\n\x16\x45xecutionResultRequest\x12\x12\n\x04name\x18\x01 \x01(\tR\x04name\x12\x39\n\nstart_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\tstartTime\x12]\n\x12validation_results\x18\x03 \x03(\x0b\x32..kubekarma.collectors.v1alpha.ValidationResultR\x11validationResults\x12\x14\n\x05token\x18\x04 \x01(\tR\x05token\"3\n\x17\x45xecutionResultResponse\x12\x18\n\x07message\x18\x01 \x01(\tR\x07message2\xa1\x01\n\x1fTestSuiteExecutionResultService\x12~\n\rReportResults\x12\x34.kubekarma.collectors.v1alpha.ExecutionResultRequest\x1a\x35.kubekarma.collectors.v1alpha.ExecutionResultResponse\"\x00\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'kubekarma.grpcgen.collectors.v1alpha.controller_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
-  _globals['_VALIDATIONRESULT']._serialized_start=148
-  _globals['_VALIDATIONRESULT']._serialized_end=480
-  _globals['_VALIDATIONRESULT_STATUS']._serialized_start=413
-  _globals['_VALIDATIONRESULT_STATUS']._serialized_end=480
-  _globals['_EXECUTIONRESULTREQUEST']._serialized_start=483
-  _globals['_EXECUTIONRESULTREQUEST']._serialized_end=698
-  _globals['_EXECUTIONRESULTRESPONSE']._serialized_start=700
-  _globals['_EXECUTIONRESULTRESPONSE']._serialized_end=751
-  _globals['_TESTSUITEEXECUTIONRESULTSERVICE']._serialized_start=754
-  _globals['_TESTSUITEEXECUTIONRESULTSERVICE']._serialized_end=905
+  _globals['_VALIDATIONRESULT']._serialized_start=153
+  _globals['_VALIDATIONRESULT']._serialized_end=490
+  _globals['_VALIDATIONRESULT_STATUS']._serialized_start=423
+  _globals['_VALIDATIONRESULT_STATUS']._serialized_end=490
+  _globals['_EXECUTIONRESULTREQUEST']._serialized_start=493
+  _globals['_EXECUTIONRESULTREQUEST']._serialized_end=713
+  _globals['_EXECUTIONRESULTRESPONSE']._serialized_start=715
+  _globals['_EXECUTIONRESULTRESPONSE']._serialized_end=766
+  _globals['_TESTSUITEEXECUTIONRESULTSERVICE']._serialized_start=769
+  _globals['_TESTSUITEEXECUTIONRESULTSERVICE']._serialized_end=930
 # @@protoc_insertion_point(module_scope)
