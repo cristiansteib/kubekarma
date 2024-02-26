@@ -15,7 +15,7 @@ class TestSuiteExecutionResultServiceStub(object):
             channel: A grpc.Channel.
         """
         self.ReportResults = channel.unary_unary(
-                '/kubekarma.collectors.v1.TestSuiteExecutionResultService/ReportResults',
+                '/kubekarma.collectors.v1alpha.TestSuiteExecutionResultService/ReportResults',
                 request_serializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1alpha_dot_controller__pb2.ExecutionResultRequest.SerializeToString,
                 response_deserializer=kubekarma_dot_grpcgen_dot_collectors_dot_v1alpha_dot_controller__pb2.ExecutionResultResponse.FromString,
                 )
@@ -41,7 +41,7 @@ def add_TestSuiteExecutionResultServiceServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'kubekarma.collectors.v1.TestSuiteExecutionResultService', rpc_method_handlers)
+            'kubekarma.collectors.v1alpha.TestSuiteExecutionResultService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -60,7 +60,7 @@ class TestSuiteExecutionResultService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/kubekarma.collectors.v1.TestSuiteExecutionResultService/ReportResults',
+        return grpc.experimental.unary_unary(request, target, '/kubekarma.collectors.v1alpha.TestSuiteExecutionResultService/ReportResults',
             kubekarma_dot_grpcgen_dot_collectors_dot_v1alpha_dot_controller__pb2.ExecutionResultRequest.SerializeToString,
             kubekarma_dot_grpcgen_dot_collectors_dot_v1alpha_dot_controller__pb2.ExecutionResultResponse.FromString,
             options, channel_credentials,

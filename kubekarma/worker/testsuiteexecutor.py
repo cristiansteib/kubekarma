@@ -6,6 +6,7 @@ from kubekarma.grpcgen.collectors.v1alpha.controller_pb2 import (
     ExecutionResultRequest
 )
 from google.protobuf.timestamp_pb2 import Timestamp
+from google.protobuf.duration_pb2 import Duration
 
 from kubekarma.worker import utils
 from kubekarma.worker.abs.exception import AssertionFailure
@@ -57,8 +58,10 @@ class TestSuiteExecutor:
             partial_test_result["status"] = status_type.ERROR
             partial_test_result["error_message"] = utils.stringify_exception(e)
         finally:
-            partial_test_result["execution_time"] = gen_timestamp(
-                time.perf_counter() - start_time
+            elapsed_time = time.perf_counter() - start_time
+            partial_test_result["duration"] = Duration(
+                seconds=int(elapsed_time),
+                nanos=int((elapsed_time % 1) * 10 ** 9)
             )
             return ValidationResult(**partial_test_result)
 

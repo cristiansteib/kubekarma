@@ -115,10 +115,9 @@ class ResultsDeadlineValidator(IResultsSubscriber):
         self.__set_next_time_to_receive_results()
 
     def update(self, results: T):
+        seconds, nanos = results.start_time.seconds, results.start_time.nanos
         self.mark_results_received(
-            datetime.fromisoformat(
-                results.started_at_time
-            )
+            datetime.fromtimestamp(seconds + nanos / 10 ** 9)
         )
 
     def on_delete(self):

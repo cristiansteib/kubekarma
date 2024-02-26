@@ -53,6 +53,7 @@ class ControllerCRDLifecycleHandler:
 
     def handle_create(self, spec: Spec, body: Body, **kwargs):
         """Handle the creation of the CRD instance."""
+        logger.info("Handling the creation of a CRD instance")
         self._assert_is_expected_kind(body)
 
         crd = self.test_suite_kind.get_crd_for_creation(
@@ -94,6 +95,12 @@ class ControllerCRDLifecycleHandler:
         kopf.adopt(cron_job, owner=body)  # type: ignore
 
         # Call the api to create the cronjob
+        logger.info(
+            "Creating cron job for %s/%s of kind %s",
+            crd.namespace,
+            crd.metadata_name,
+            self.kind
+        )
         crd_manager.create_cron_job(cron_job)
 
         crd_manager.info_event(
